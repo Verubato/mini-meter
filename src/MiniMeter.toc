@@ -5,5 +5,6 @@
 ## Version: 1.0.0
 ## IconTexture: Interface\AddOns\MiniMeter\icon.blp
 ## SavedVariables: MiniMeterDB
+## X-Curse-Project-ID: 1419348
 
 MiniMeter.lua
