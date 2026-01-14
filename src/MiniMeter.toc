@@ -2,7 +2,7 @@
 ## Title: MiniMeter
 ## Notes: Shows fps and ping values on your UI.
 ## Author: Verz
-## Version: 1.0.0
+## Version: 1.1.0
 ## IconTexture: Interface\AddOns\MiniMeter\Icon.blp
 ## SavedVariables: MiniMeterDB
 ## X-Curse-Project-ID: 1419348
