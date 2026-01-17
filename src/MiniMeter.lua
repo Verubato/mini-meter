@@ -9,8 +9,6 @@ local text
 local ticker
 ---@type Db
 local db
----@type Db
-local dbDefaults = config.DbDefaults
 
 local function GetPlayerDurabilityPercent()
 	local curTotal, maxTotal = 0, 0
@@ -96,11 +94,11 @@ function RgbNumber(r, g, b, value)
 end
 
 local function ApplyPosition()
-	local point = db.Point or dbDefaults.Point
-	local relativePoint = db.RelativePoint or dbDefaults.RelativePoint
+	local point = db.Point
+	local relativePoint = db.RelativePoint
 	local relativeTo = (db.RelativeTo and _G[db.RelativeTo]) or UIParent
-	local x = (type(db.X) == "number") and db.X or dbDefaults.X
-	local y = (type(db.Y) == "number") and db.Y or dbDefaults.Y
+	local x = db.X
+	local y = db.Y
 
 	draggable:ClearAllPoints()
 	draggable:SetPoint(point, relativeTo, relativePoint, x, y)
@@ -118,11 +116,7 @@ local function SavePosition()
 end
 
 local function UpdateFont()
-	text:SetFont(
-		db.FontPath or dbDefaults.FontPath,
-		db.FontSize or dbDefaults.FontSize,
-		db.FontFlags or dbDefaults.FontFlags
-	)
+	text:SetFont(db.FontPath, db.FontSize, db.FontFlags)
 end
 
 local function UpdateText()
@@ -171,7 +165,7 @@ local function StartTicker()
 		return
 	end
 
-	ticker = C_Timer.NewTicker(db.UpdateInterval or dbDefaults.UpdateInterval, OnTick)
+	ticker = C_Timer.NewTicker(db.UpdateInterval, OnTick)
 end
 
 local function OnEvent()
