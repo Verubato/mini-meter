@@ -7,7 +7,7 @@ local db
 
 ---@class Db
 local dbDefaults = {
-	Version = 2,
+	Version = 3,
 	Point = "TOP",
 	RelativeTo = "Minimap",
 	RelativePoint = "BOTTOM",
@@ -16,46 +16,61 @@ local dbDefaults = {
 
 	UpdateInterval = 1,
 
-	FpsEnabled = true,
-	LatencyEnabled = true,
-	DurabilityEnabled = true,
-
-	FpsFormat = "FPS: %s",
-	LatencyFormat = "MS: %s",
-	DurabilityFormat = "|A:repair:16:16|a: %s%%",
-
-	FontPath = "Fonts\\FRIZQT__.TTF",
-	FontSize = 18,
-	FontFlags = "OUTLINE",
-
-	LowFpsThreshold = 30,
-	MediumFpsThreshold = 60,
-	LowLatencyThreshold = 50,
-	MediumLatencyThreshold = 200,
-	LowDurabilityThreshold = 0.4,
-	MediumDurabilityThreshold = 0.7,
-
-	ColorsEnabled = true,
-
-	DefaultColor = {
-		R = 255,
-		G = 255,
-		B = 255,
+	Fps = {
+		Enabled = true,
+		Format = "FPS: %s",
+		Thresholds = {
+			Low = 30,
+			Medium = 60,
+		},
 	},
-	BadColor = {
-		R = 231,
-		G = 76,
-		B = 60,
+
+	Latency = {
+		Enabled = true,
+		Format = "MS: %s",
+		Thresholds = {
+			Low = 50,
+			Medium = 200,
+		},
 	},
-	OkColor = {
-		R = 241,
-		G = 196,
-		B = 15,
+
+	Durability = {
+		Enabled = true,
+		Format = "|A:repair:16:16|a: %s%%",
+		Thresholds = {
+			Low = 0.4,
+			Medium = 0.7,
+		},
 	},
-	GoodColor = {
-		R = 46,
-		G = 204,
-		B = 113,
+
+	Font = {
+		File = "Fonts\\FRIZQT__.TTF",
+		Size = 18,
+		Flags = "OUTLINE",
+	},
+
+	Colors = {
+		Enabled = true,
+		Default = {
+			R = 255,
+			G = 255,
+			B = 255,
+		},
+		Bad = {
+			R = 231,
+			G = 76,
+			B = 60,
+		},
+		Ok = {
+			R = 241,
+			G = 196,
+			B = 15,
+		},
+		Good = {
+			R = 46,
+			G = 204,
+			B = 113,
+		},
 	},
 }
 
@@ -106,10 +121,10 @@ function M:Init()
 		Parent = panel,
 		LabelText = "Enable Colors",
 		GetValue = function()
-			return db.ColorsEnabled
+			return db.Colors.Enabled
 		end,
 		SetValue = function(value)
-			db.ColorsEnabled = value
+			db.Colors.Enabled = value
 			addon:Refresh()
 		end,
 	})
@@ -120,10 +135,10 @@ function M:Init()
 		Parent = panel,
 		LabelText = "Enable FPS",
 		GetValue = function()
-			return db.FpsEnabled
+			return db.Fps.Enabled
 		end,
 		SetValue = function(value)
-			db.FpsEnabled = value
+			db.Fps.Enabled = value
 			addon:Refresh()
 		end,
 	})
@@ -135,10 +150,10 @@ function M:Init()
 		Parent = panel,
 		LabelText = "Enable Latency",
 		GetValue = function()
-			return db.LatencyEnabled
+			return db.Latency.Enabled
 		end,
 		SetValue = function(value)
-			db.LatencyEnabled = value
+			db.Latency.Enabled = value
 			addon:Refresh()
 		end,
 	})
@@ -150,10 +165,10 @@ function M:Init()
 		Parent = panel,
 		LabelText = "Enable Durability",
 		GetValue = function()
-			return db.DurabilityEnabled
+			return db.Durability.Enabled
 		end,
 		SetValue = function(value)
-			db.DurabilityEnabled = value
+			db.Durability.Enabled = value
 			addon:Refresh()
 		end,
 	})
@@ -168,10 +183,10 @@ function M:Init()
 		Max = 50,
 		Step = 1,
 		GetValue = function()
-			return tonumber(db.FontSize) or dbDefaults.FontSize
+			return tonumber(db.Font.Size) or dbDefaults.Font.Size
 		end,
 		SetValue = function(value)
-			db.FontSize = mini:ClampInt(value, 12, 50, dbDefaults.FontSize)
+			db.Font.Size = mini:ClampInt(value, 12, 50, dbDefaults.Font.Size)
 			addon:Refresh()
 		end,
 	})

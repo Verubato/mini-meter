@@ -48,45 +48,45 @@ local function ResizeDraggableToText()
 end
 
 function FpsColour(fps)
-	if not db.ColorsEnabled then
-		return db.DefaultColor
+	if not db.Colors.Enabled then
+		return db.Colors.Default
 	end
 
-	if fps <= db.LowFpsThreshold then
-		return db.BadColor
-	elseif fps <= db.MediumFpsThreshold then
-		return db.OkColor
+	if fps <= db.Fps.Thresholds.Low then
+		return db.Colors.Bad
+	elseif fps <= db.Fps.Thresholds.Medium then
+		return db.Colors.Ok
 	end
 
-	return db.GoodColor
+	return db.Colors.Good
 end
 
 function LatencyColour(fps)
-	if not db.ColorsEnabled then
-		return db.DefaultColor
+	if not db.Colors.Enabled then
+		return db.Colors.Default
 	end
 
-	if fps <= db.LowLatencyThreshold then
-		return db.GoodColor
-	elseif fps <= db.MediumLatencyThreshold then
-		return db.OkColor
+	if fps <= db.Latency.Thresholds.Low then
+		return db.Colors.Good
+	elseif fps <= db.Latency.Thresholds.Medium then
+		return db.Colors.Ok
 	end
 
-	return db.BadColor
+	return db.Colors.Bad
 end
 
 function DurabilityColour(durability)
-	if not db.ColorsEnabled then
-		return db.DefaultColor
+	if not db.Colors.Enabled then
+		return db.Colors.Default
 	end
 
-	if durability <= db.LowDurabilityThreshold then
-		return db.BadColor
-	elseif durability <= db.MediumDurabilityThreshold then
-		return db.OkColor
+	if durability <= db.Durability.Thresholds.Low then
+		return db.Colors.Bad
+	elseif durability <= db.Durability.Thresholds.Medium then
+		return db.Colors.Ok
 	end
 
-	return db.GoodColor
+	return db.Colors.Good
 end
 
 function RgbNumber(r, g, b, value)
@@ -116,36 +116,36 @@ local function SavePosition()
 end
 
 local function UpdateFont()
-	text:SetFont(db.FontPath, db.FontSize, db.FontFlags)
+	text:SetFont(db.Font.File, db.Font.Size, db.Font.Flags)
 end
 
 local function UpdateText()
 	local parts = {}
 
-	if db.FpsEnabled then
+	if db.Fps.Enabled then
 		local fps = GetFramerate()
 		local colour = FpsColour(fps)
 		local coloured = RgbNumber(colour.R, colour.G, colour.B, math.floor(fps))
-		local part = string.format(db.FpsFormat, coloured)
+		local part = string.format(db.Fps.Format, coloured)
 		parts[#parts + 1] = part
 	end
 
-	if db.LatencyEnabled then
+	if db.Latency.Enabled then
 		local _, _, _, worldLatency = GetNetStats()
 		local colour = LatencyColour(worldLatency)
 		local coloured = RgbNumber(colour.R, colour.G, colour.B, math.floor(worldLatency))
-		local part = string.format(db.LatencyFormat, coloured)
+		local part = string.format(db.Latency.Format, coloured)
 		parts[#parts + 1] = part
 	end
 
-	if db.DurabilityEnabled then
+	if db.Durability.Enabled then
 		local durability = GetPlayerDurabilityPercent()
 
 		if durability then
 			local colour = DurabilityColour(durability)
 			local coloured = RgbNumber(colour.R, colour.G, colour.B, math.floor(durability * 100))
 
-			local part = string.format(db.DurabilityFormat, coloured)
+			local part = string.format(db.Durability.Format, coloured)
 			parts[#parts + 1] = part
 		end
 	end
