@@ -926,7 +926,7 @@ function M:CleanTable(target, template, cleanValues, recurse)
 
         if recurse then
             if type(value) == "table" and type(templateValue) == "table" then
-                CleanTable(value, templateValue, cleanValues, recurse)
+                M:CleanTable(value, templateValue, cleanValues, recurse)
             elseif type(value) == "table" and type(templateValue) ~= "table" then
                 -- type mismatch: reset this key to default
                 target[key] = templateValue
