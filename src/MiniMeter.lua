@@ -1,80 +1,59 @@
-local addonName, _ = ...
+local _, addon = ...
+local eventsFrame
+---@type MiniFramework
+local mini = addon.Framework
+---@type ConfigModule
+local config = addon.Config
 local draggable
 local text
+local ticker
+---@type Db
 local db
-local dbDefaults = {
-	Point = "TOP",
-	RelativeTo = "Minimap",
-	RelativePoint = "BOTTOM",
-	X = 0,
-	Y = -25,
+---@type Db
+local dbDefaults = config.DbDefaults
 
-	UpdateInterval = 1,
+local function ResizeDraggableToText()
+	local padding = 10
+	local width = text:GetStringWidth() or 0
+	local height = text:GetStringHeight() or 0
 
-	Height = 40,
-	Width = 200,
-
-	TextFormat = "FPS: %s MS: %s",
-	FontPath = "Fonts\\FRIZQT__.TTF",
-	FontSize = 18,
-	FontFlags = "OUTLINE",
-
-	LowFpsThreshold = 30,
-	MediumFpsThreshold = 60,
-	LowLatencyThreshold = 50,
-	MediumLatencyThreshold = 200,
-
-	BadColor = {
-		R = 231,
-		G = 76,
-		B = 60,
-	},
-	OkColour = {
-		R = 241,
-		G = 196,
-		B = 15,
-	},
-	GoodColour = {
-		R = 46,
-		G = 204,
-		B = 113,
-	},
-}
-
-local function CopyTable(src, dst)
-	if type(dst) ~= "table" then
-		dst = {}
+	if width < 1 then
+		width = 1
 	end
 
-	for k, v in pairs(src) do
-		if type(v) == "table" then
-			dst[k] = CopyTable(v, dst[k])
-		elseif dst[k] == nil then
-			dst[k] = v
-		end
+	if height < 1 then
+		height = 1
 	end
 
-	return dst
+	draggable:SetSize(width + 2 * padding, height + 2 * padding)
 end
 
 function FpsColour(fps)
-	if fps <= (db.LowFpsThreshold or dbDefaults.LowFpsThreshold) then
-		return db.BadColour or dbDefaults.BadColor
-	elseif fps <= (db.MediumFpsThreshold or dbDefaults.MediumFpsThreshold) then
-		return db.OkColor or dbDefaults.OkColour
+	if not db.ColorsEnabled then
+		return db.DefaultColor
 	end
 
-	return db.GoodColour or dbDefaults.GoodColour
+	if fps <= (db.LowFpsThreshold or dbDefaults.LowFpsThreshold) then
+		return db.BadColor or dbDefaults.BadColor
+	elseif fps <= (db.MediumFpsThreshold or dbDefaults.MediumFpsThreshold) then
+		return db.OkColor or dbDefaults.OkColor
+	end
+
+	return db.GoodColor or dbDefaults.GoodColor
 end
 
 function LatencyColour(fps)
-	if fps <= (db.LowLatencyThreshold or dbDefaults.LowLatencyThreshold) then
-		return db.GoodColour or dbDefaults.GoodColour
-	elseif fps <= (db.MediumLatencyThreshold or dbDefaults.MediumLatencyThreshold) then
-		return db.OkColour or dbDefaults.OkColour
+	if not db.ColorsEnabled then
+		return db.DefaultColor
 	end
 
-	return db.BadColour or dbDefaults.BadColor
+	if fps <= (db.LowLatencyThreshold or dbDefaults.LowLatencyThreshold) then
+		return db.GoodColor or dbDefaults.GoodColor
+	elseif fps <= (db.MediumLatencyThreshold or dbDefaults.MediumLatencyThreshold) then
+		return db.OkColor or dbDefaults.OkColor
+	end
+
+	return db.BadColor or dbDefaults.BadColor
 end
 
 function RgbNumber(r, g, b, value)
@@ -103,7 +82,15 @@ local function SavePosition()
 	db.Y = y
 end
 
-local function Update()
+local function UpdateFont()
+	text:SetFont(
+		db.FontPath or dbDefaults.FontPath,
+		db.FontSize or dbDefaults.FontSize,
+		db.FontFlags or dbDefaults.FontFlags
+	)
+end
+
+local function UpdateText()
 	local fps = GetFramerate()
 	local _, _, _, worldLatency = GetNetStats()
 	local fpsColour = FpsColour(fps)
@@ -113,22 +100,39 @@ local function Update()
 	local format = db.TextFormat or dbDefaults.TextFormat
 	local message = string.format(format, colouredFps, colouredLatency)
 
-	text:SetText(message)
+	ResizeDraggableToText()
 
-	C_Timer.After(db.UpdateInterval or dbDefaults.UpdateInterval, Update)
+	text:SetText(message)
+end
+
+local function OnTick()
+	UpdateText()
+end
+
+local function StartTicker()
+	if ticker then
+		return
+	end
+
+	ticker = C_Timer.NewTicker(db.UpdateInterval or dbDefaults.UpdateInterval, OnTick)
 end
 
 local function OnEvent()
 	ApplyPosition()
-	Update()
+	UpdateText()
 end
 
 local function Init()
-	MiniMeterDB = MiniMeterDB or {}
-	db = CopyTable(dbDefaults, MiniMeterDB)
+	config:Init()
+
+	db = mini:GetSavedVars()
+
+	-- might need to wait a bit later for frames to be created before applying our position
+	eventsFrame = CreateFrame("Frame")
+	eventsFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	eventsFrame:SetScript("OnEvent", OnEvent)
 
 	draggable = CreateFrame("Frame", nil, UIParent)
-	draggable:SetSize(db.Width or dbDefaults.Width, db.Height or dbDefaults.Height)
 	draggable:SetClampedToScreen(true)
 	draggable:EnableMouse(true)
 	draggable:SetMovable(true)
@@ -145,24 +149,21 @@ local function Init()
 	end)
 
 	text = UIParent:CreateFontString(nil, "ARTWORK", "GameFontWhiteLarge")
-	text:SetFont(
-		db.FontPath or dbDefaults.FontPath,
-		db.FontSize or dbDefaults.FontSize,
-		db.FontFlags or dbDefaults.FontFlags
-	)
 	text:SetAllPoints(draggable)
+
+	UpdateFont()
+	UpdateText()
+	ResizeDraggableToText()
+	StartTicker()
 end
 
-local loader = CreateFrame("Frame")
-loader:RegisterEvent("ADDON_LOADED")
-loader:SetScript("OnEvent", function(_, event, arg1)
-	if event == "ADDON_LOADED" and arg1 == addonName then
-		Init()
+local function OnAddonLoaded()
+	Init()
+end
 
-		loader:UnregisterEvent("ADDON_LOADED")
+function addon:Refresh()
+	UpdateFont()
+	UpdateText()
+end
 
-		-- might need to wait a bit later for frames to be created before applying our position
-		loader:RegisterEvent("PLAYER_ENTERING_WORLD")
-		loader:SetScript("OnEvent", OnEvent)
-	end
-end)
+mini:WaitForAddonLoad(OnAddonLoaded)
