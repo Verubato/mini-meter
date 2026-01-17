@@ -7,6 +7,8 @@ local config = addon.Config
 local draggable
 local text
 local ticker
+local lastWidth, lastHeight
+local resizeQueued = false
 ---@type Db
 local db
 
@@ -33,7 +35,7 @@ end
 
 local function ResizeDraggableToText()
 	local padding = 10
-	local width = text:GetStringWidth() or 0
+	local width = text:GetUnboundedStringWidth() or 0
 	local height = text:GetStringHeight() or 0
 
 	if width < 1 then
@@ -44,7 +46,28 @@ local function ResizeDraggableToText()
 		height = 1
 	end
 
+	-- might help reduce flicker/noise
+	if width == lastWidth and height == lastHeight then
+		return
+	end
+
 	draggable:SetSize(width + 2 * padding, height + 2 * padding)
+
+	lastWidth = width
+	lastHeight = height
+
+	resizeQueued = false
+end
+
+local function QueueResizeDraggable()
+	if resizeQueued then
+		return
+	end
+
+	resizeQueued = true
+
+	-- wait for the font string to have updated it's rendered width/height before we compute it
+	C_Timer.After(0, ResizeDraggableToText)
 end
 
 function FpsColour(fps)
@@ -153,7 +176,7 @@ local function UpdateText()
 	local message = table.concat(parts, " ")
 	text:SetText(message)
 
-	ResizeDraggableToText()
+	QueueResizeDraggable()
 end
 
 local function OnTick()
@@ -204,7 +227,7 @@ local function Init()
 
 	UpdateFont()
 	UpdateText()
-	ResizeDraggableToText()
+	QueueResizeDraggable()
 	StartTicker()
 end
 
