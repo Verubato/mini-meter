@@ -7,4 +7,6 @@
 ## SavedVariables: MiniMeterDB
 ## X-Curse-Project-ID: 1419348
 
+MiniFramework.lua
+Config.lua
 MiniMeter.lua
