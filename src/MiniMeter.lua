@@ -34,7 +34,6 @@ local function GetPlayerDurabilityPercent()
 end
 
 local function ResizeDraggableToText()
-	local padding = 10
 	local width = text:GetUnboundedStringWidth() or 0
 	local height = text:GetStringHeight() or 0
 
@@ -51,7 +50,7 @@ local function ResizeDraggableToText()
 		return
 	end
 
-	draggable:SetSize(width + 2 * padding, height + 2 * padding)
+	draggable:SetSize(width, height)
 
 	lastWidth = width
 	lastHeight = height
