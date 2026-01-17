@@ -223,7 +223,9 @@ local function Init()
 	end)
 
 	text = UIParent:CreateFontString(nil, "ARTWORK", "GameFontWhiteLarge")
-	text:SetAllPoints(draggable)
+	text:SetPoint("CENTER", draggable, "CENTER", 0, 0)
+	text:SetWordWrap(false)
+	text:SetNonSpaceWrap(false)
 
 	UpdateFont()
 	UpdateText()
