@@ -16,7 +16,14 @@ local dbDefaults = {
 
 	UpdateInterval = 1,
 
-	TextFormat = "FPS: %s MS: %s",
+	FpsEnabled = true,
+	LatencyEnabled = true,
+	DurabilityEnabled = true,
+
+	FpsFormat = "FPS: %s",
+	LatencyFormat = "MS: %s",
+	DurabilityFormat = "|A:repair:16:16|a: %s%%",
+
 	FontPath = "Fonts\\FRIZQT__.TTF",
 	FontSize = 18,
 	FontFlags = "OUTLINE",
@@ -25,6 +32,8 @@ local dbDefaults = {
 	MediumFpsThreshold = 60,
 	LowLatencyThreshold = 50,
 	MediumLatencyThreshold = 200,
+	LowDurabilityThreshold = 0.4,
+	MediumDurabilityThreshold = 0.7,
 
 	ColorsEnabled = true,
 
@@ -62,7 +71,7 @@ local function GetAndUpgradeDb()
 
 	-- I had some typos like color vs colour and some values like height/width that are no longer used
 	-- so get rid of them
-	if vars.Version == 2 then
+	if vars.Version >= 2 or vars.Version <= 3 then
 		mini:CleanTable(vars, dbDefaults, true, false)
 	end
 
@@ -82,13 +91,16 @@ function M:Init()
 		return
 	end
 
+	local columns = 4
+	local columnWidth = mini:ColumnWidth(columns, 0, 0)
+	local version = C_AddOns.GetAddOnMetadata(addonName, "Version")
 	local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 	title:SetPoint("TOPLEFT", 0, -verticalSpacing)
-	title:SetText(addonName)
+	title:SetText(string.format("%s - %s", addonName, version))
 
 	local subtitle = panel:CreateFontString(nil, "ARTWORK", "GameFontWhite")
 	subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
-	subtitle:SetText("Shows an fps and ping meter on your UI.")
+	subtitle:SetText("Shows a simple status meter on your UI.")
 
 	local enableColors = mini:Checkbox({
 		Parent = panel,
@@ -103,6 +115,51 @@ function M:Init()
 	})
 
 	enableColors:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, -verticalSpacing)
+
+	local enableFps = mini:Checkbox({
+		Parent = panel,
+		LabelText = "Enable FPS",
+		GetValue = function()
+			return db.FpsEnabled
+		end,
+		SetValue = function(value)
+			db.FpsEnabled = value
+			addon:Refresh()
+		end,
+	})
+
+	enableFps:SetPoint("TOP", enableColors, "TOP", 0, 0)
+	enableFps:SetPoint("LEFT", panel, "LEFT", columnWidth, -verticalSpacing)
+
+	local enableLatency = mini:Checkbox({
+		Parent = panel,
+		LabelText = "Enable Latency",
+		GetValue = function()
+			return db.LatencyEnabled
+		end,
+		SetValue = function(value)
+			db.LatencyEnabled = value
+			addon:Refresh()
+		end,
+	})
+
+	enableLatency:SetPoint("TOP", enableColors, "TOP", 0, 0)
+	enableLatency:SetPoint("LEFT", panel, "LEFT", columnWidth * 2, -verticalSpacing)
+
+	local enableDurability = mini:Checkbox({
+		Parent = panel,
+		LabelText = "Enable Durability",
+		GetValue = function()
+			return db.DurabilityEnabled
+		end,
+		SetValue = function(value)
+			db.DurabilityEnabled = value
+			addon:Refresh()
+		end,
+	})
+
+	enableDurability:SetPoint("TOP", enableColors, "TOP", 0, 0)
+	enableDurability:SetPoint("LEFT", panel, "LEFT", columnWidth * 3, -verticalSpacing)
 
 	local sizeSlider = mini:Slider({
 		Parent = panel,
