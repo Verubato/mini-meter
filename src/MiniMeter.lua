@@ -12,6 +12,10 @@ local resizeQueued = false
 ---@type Db
 local db
 
+local function UpdatePlaceholders(format, value)
+	return string.gsub(format or "", "$value", value)
+end
+
 local function GetPlayerDurabilityPercent()
 	local curTotal, maxTotal = 0, 0
 
@@ -148,7 +152,7 @@ local function UpdateText()
 		local fps = GetFramerate()
 		local colour = FpsColour(fps)
 		local coloured = RgbNumber(colour.R, colour.G, colour.B, math.floor(fps))
-		local part = string.format(db.Fps.Format, coloured)
+		local part = UpdatePlaceholders(db.Fps.Format, coloured)
 		parts[#parts + 1] = part
 	end
 
@@ -156,7 +160,7 @@ local function UpdateText()
 		local _, _, _, worldLatency = GetNetStats()
 		local colour = LatencyColour(worldLatency)
 		local coloured = RgbNumber(colour.R, colour.G, colour.B, math.floor(worldLatency))
-		local part = string.format(db.Latency.Format, coloured)
+		local part = UpdatePlaceholders(db.Latency.Format, coloured)
 		parts[#parts + 1] = part
 	end
 
@@ -167,7 +171,7 @@ local function UpdateText()
 			local colour = DurabilityColour(durability)
 			local coloured = RgbNumber(colour.R, colour.G, colour.B, math.floor(durability * 100))
 
-			local part = string.format(db.Durability.Format, coloured)
+			local part = UpdatePlaceholders(db.Durability.Format, coloured)
 			parts[#parts + 1] = part
 		end
 	end
