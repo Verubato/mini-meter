@@ -7,7 +7,7 @@ local db
 
 ---@class Db
 local dbDefaults = {
-	Version = 3,
+	Version = 4,
 	Point = "TOP",
 	RelativeTo = "Minimap",
 	RelativePoint = "BOTTOM",
@@ -18,7 +18,7 @@ local dbDefaults = {
 
 	Fps = {
 		Enabled = true,
-		Format = "FPS: %s",
+		Format = "FPS: $value",
 		Thresholds = {
 			Low = 30,
 			Medium = 60,
@@ -27,7 +27,7 @@ local dbDefaults = {
 
 	Latency = {
 		Enabled = true,
-		Format = "MS: %s",
+		Format = "MS: $value",
 		Thresholds = {
 			Low = 50,
 			Medium = 200,
@@ -36,7 +36,7 @@ local dbDefaults = {
 
 	Durability = {
 		Enabled = true,
-		Format = "|A:repair:16:16|a: %s%%",
+		Format = "|A:repair:16:16|a: $value%",
 		Thresholds = {
 			Low = 0.4,
 			Medium = 0.7,
@@ -84,10 +84,29 @@ addon.Config = M
 local function GetAndUpgradeDb()
 	local vars = mini:GetSavedVars(dbDefaults)
 
-	-- I had some typos like color vs colour and some values like height/width that are no longer used
-	-- so get rid of them
-	if vars.Version >= 2 or vars.Version <= 3 then
-		mini:CleanTable(vars, dbDefaults, true, false)
+	while vars.Version ~= dbDefaults.Version do
+		if not vars.Version or vars.Version == 1 then
+			vars = mini:GetSavedVars(dbDefaults)
+			vars.Version = dbDefaults.Version
+		end
+
+		if vars.Version == 2 then
+			-- I had some typos like color vs colour and some values like height/width that are no longer used
+			-- so get rid of them
+			mini:CleanTable(vars, dbDefaults, true, false)
+			vars.Version = 3
+		end
+
+		if vars.Version == 3 then
+			-- had a big restructure
+			mini:CleanTable(vars, dbDefaults, true, false)
+
+			-- changed from string.format %s to a more user safe gsub $value
+			vars.Fps.Format = string.gsub(vars.Fps.Format, "%%s", "$value")
+			vars.Latency.Format = string.gsub(vars.Fps.Format, "%%s", "$value")
+			vars.Durability.Format = "|A:repair:16:16|a: $value%"
+			vars.Version = 4
+		end
 	end
 
 	return vars
@@ -97,6 +116,7 @@ function M:Init()
 	db = GetAndUpgradeDb()
 
 	local verticalSpacing = mini.VerticalSpacing
+	local horizontalSpacing = mini.HorizontalSpacing
 	local panel = CreateFrame("Frame")
 	panel.name = addonName
 
@@ -117,6 +137,15 @@ function M:Init()
 	subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
 	subtitle:SetText("Shows a simple status meter on your UI.")
 
+	local togglesDivider = mini:Divider({
+		Parent = panel,
+		Text = "Toggles",
+	})
+
+	togglesDivider:SetPoint("LEFT", panel)
+	togglesDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0 )
+	togglesDivider:SetPoint("TOP", subtitle, "BOTTOM", 0, -verticalSpacing)
+
 	local enableColors = mini:Checkbox({
 		Parent = panel,
 		LabelText = "Enable Colors",
@@ -129,7 +158,7 @@ function M:Init()
 		end,
 	})
 
-	enableColors:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, -verticalSpacing)
+	enableColors:SetPoint("TOPLEFT", togglesDivider, "BOTTOMLEFT", 0, -verticalSpacing)
 
 	local enableFps = mini:Checkbox({
 		Parent = panel,
@@ -176,9 +205,19 @@ function M:Init()
 	enableDurability:SetPoint("TOP", enableColors, "TOP", 0, 0)
 	enableDurability:SetPoint("LEFT", panel, "LEFT", columnWidth * 3, -verticalSpacing)
 
+	local sizeDivider = mini:Divider({
+		Parent = panel,
+		Text = "Size",
+	})
+
+	sizeDivider:SetPoint("LEFT", panel)
+	sizeDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
+	sizeDivider:SetPoint("TOP", enableDurability, "BOTTOM", 0, -verticalSpacing)
+
 	local sizeSlider = mini:Slider({
 		Parent = panel,
 		LabelText = "Size",
+		Width = (columnWidth * columns) - horizontalSpacing,
 		Min = 4,
 		Max = 50,
 		Step = 1,
@@ -191,7 +230,89 @@ function M:Init()
 		end,
 	})
 
-	sizeSlider.Slider:SetPoint("TOPLEFT", enableColors, "BOTTOMLEFT", 0, -verticalSpacing * 3)
+	sizeSlider.Slider:SetPoint("TOPLEFT", sizeDivider, "BOTTOMLEFT", 0, -verticalSpacing * 3)
+
+	local textDivider = mini:Divider({
+		Parent = panel,
+		Text = "Text",
+	})
+
+	textDivider:SetPoint("LEFT", panel)
+	textDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
+	textDivider:SetPoint("TOP", sizeSlider.Slider, "BOTTOM", 0, -verticalSpacing)
+
+	local anchor = mini:TextBlock({
+		Parent = panel,
+		Lines = {
+			"Note: ",
+			"  - $value gets replaced with the actual fps/latency/durability value.",
+			"  - For example 'FPS: $value' becomes 'FPS: 123'",
+		},
+	})
+
+	anchor:SetPoint("TOPLEFT", textDivider, "BOTTOMLEFT", 0, -verticalSpacing)
+
+	local editBoxWidth = 200
+	local fpsEditBox = mini:EditBox({
+		Parent = panel,
+		LabelText = "FPS Text",
+		Width = editBoxWidth,
+		GetValue = function()
+			return db.Fps.Format
+		end,
+		SetValue = function(value)
+			db.Fps.Format = value
+		end,
+	})
+
+	local labelWidth = 100
+	fpsEditBox.Label:SetWidth(labelWidth)
+	fpsEditBox.Label:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -verticalSpacing * 2)
+	fpsEditBox.EditBox:SetPoint("LEFT", fpsEditBox.Label, "RIGHT", horizontalSpacing, 0)
+
+	local latencyEditBox = mini:EditBox({
+		Parent = panel,
+		LabelText = "Latency Text",
+		Width = editBoxWidth,
+		GetValue = function()
+			return db.Latency.Format
+		end,
+		SetValue = function(value)
+			db.Latency.Format = value
+		end,
+	})
+
+	latencyEditBox.Label:SetWidth(labelWidth)
+	latencyEditBox.Label:SetPoint("TOPLEFT", fpsEditBox.Label, "BOTTOMLEFT", 0, -verticalSpacing)
+	latencyEditBox.EditBox:SetPoint("LEFT", latencyEditBox.Label, "RIGHT", horizontalSpacing, 0)
+
+	local durabilityEditBox = mini:EditBox({
+		Parent = panel,
+		LabelText = "Durability Text",
+		Width = editBoxWidth,
+		GetValue = function()
+			return db.Durability.Format
+		end,
+		SetValue = function(value)
+			db.Durability.Format = value
+		end,
+	})
+
+	durabilityEditBox.Label:SetWidth(labelWidth)
+	durabilityEditBox.Label:SetPoint("TOPLEFT", latencyEditBox.Label, "BOTTOMLEFT", 0, -verticalSpacing)
+	durabilityEditBox.EditBox:SetPoint("LEFT", durabilityEditBox.Label, "RIGHT", horizontalSpacing, 0)
+
+	local resetBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+	resetBtn:SetSize(120, 26)
+	resetBtn:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -16, 16)
+	resetBtn:SetText("Reset")
+	resetBtn:SetScript("OnClick", function()
+		db = mini:ResetSavedVars(dbDefaults)
+
+		panel:MiniRefresh()
+		addon:Refresh()
+		mini:Notify("Settings reset to default.")
+	end)
 
 	mini:RegisterSlashCommand(category, panel, {
 		-- note /mm is used by MiniMarkers

@@ -366,6 +366,7 @@ function M:EditBox(options)
 
 	local label = options.Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 	label:SetText(options.LabelText or "")
+	label:SetJustifyH("LEFT")
 
 	local box = CreateFrame("EditBox", nil, options.Parent, "InputBoxTemplate")
 	box:SetSize(options.Width or 80, options.Height or 20)
@@ -911,28 +912,28 @@ end
 ---@param cleanValues any whether or not to clean non-table values, e.g. numbers and strings
 ---@param recurse any whether to recursively clean the table
 function M:CleanTable(target, template, cleanValues, recurse)
-    -- remove values that aren't ours
-    if type(target) ~= "table" or type(template) ~= "table" then
-        return
-    end
+	-- remove values that aren't ours
+	if type(target) ~= "table" or type(template) ~= "table" then
+		return
+	end
 
-    for key, value in pairs(target) do
-        local templateValue = template[key]
+	for key, value in pairs(target) do
+		local templateValue = template[key]
 
-        -- only clean non-table values if told to do so
-        if cleanValues and templateValue == nil then
-            target[key] = nil
-        end
+		-- only clean non-table values if told to do so
+		if cleanValues and templateValue == nil then
+			target[key] = nil
+		end
 
-        if recurse then
-            if type(value) == "table" and type(templateValue) == "table" then
-                M:CleanTable(value, templateValue, cleanValues, recurse)
-            elseif type(value) == "table" and type(templateValue) ~= "table" then
-                -- type mismatch: reset this key to default
-                target[key] = templateValue
-            end
-        end
-    end
+		if recurse then
+			if type(value) == "table" and type(templateValue) == "table" then
+				M:CleanTable(value, templateValue, cleanValues, recurse)
+			elseif type(value) == "table" and type(templateValue) ~= "table" then
+				-- type mismatch: reset this key to default
+				target[key] = templateValue
+			end
+		end
+	end
 end
 
 function M:ResetSavedVars(defaults)
