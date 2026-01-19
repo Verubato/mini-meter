@@ -179,14 +179,14 @@ function M:Init()
 	local sizeSlider = mini:Slider({
 		Parent = panel,
 		LabelText = "Size",
-		Min = 12,
+		Min = 4,
 		Max = 50,
 		Step = 1,
 		GetValue = function()
 			return tonumber(db.Font.Size) or dbDefaults.Font.Size
 		end,
 		SetValue = function(value)
-			db.Font.Size = mini:ClampInt(value, 12, 50, dbDefaults.Font.Size)
+			db.Font.Size = mini:ClampInt(value, 4, 50, dbDefaults.Font.Size)
 			addon:Refresh()
 		end,
 	})
