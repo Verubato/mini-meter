@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.1
+
+Fixed wrong text label for latency.
+
 ## 2.1.0
 
 - Added config options for the display text.
