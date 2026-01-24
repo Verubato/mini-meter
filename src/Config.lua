@@ -7,7 +7,7 @@ local db
 
 ---@class Db
 local dbDefaults = {
-	Version = 4,
+	Version = 5,
 	Point = "TOP",
 	RelativeTo = "Minimap",
 	RelativePoint = "BOTTOM",
@@ -103,9 +103,15 @@ local function GetAndUpgradeDb()
 
 			-- changed from string.format %s to a more user safe gsub $value
 			vars.Fps.Format = string.gsub(vars.Fps.Format, "%%s", "$value")
-			vars.Latency.Format = string.gsub(vars.Fps.Format, "%%s", "$value")
+			vars.Latency.Format = string.gsub(vars.Latency.Format, "%%s", "$value")
 			vars.Durability.Format = "|A:repair:16:16|a: $value%"
 			vars.Version = 4
+		end
+
+		if vars.Version == 4 then
+			-- accidentally copied the FPS format for latency
+			vars.Latency.Format = string.gsub(vars.Latency.Format, "FPS", "MS")
+			vars.Version = 5
 		end
 	end
 
