@@ -15,6 +15,8 @@ local dbDefaults = {
 	Y = -25,
 
 	UpdateInterval = 1,
+	Locked = false,
+	MicroMenuEnabled = true,
 
 	Fps = {
 		Enabled = true,
@@ -47,6 +49,7 @@ local dbDefaults = {
 		File = "Fonts\\FRIZQT__.TTF",
 		Size = 18,
 		Flags = "OUTLINE",
+		EnableOutline = true,
 	},
 
 	Colors = {
@@ -121,6 +124,21 @@ end
 function M:Init()
 	db = GetAndUpgradeDb()
 
+	-- LibSharedMedia is always bundled, so query it directly for all available fonts.
+	-- This includes the WoW built-ins plus everything in our bundled fonts folder.
+	local LSM = LibStub("LibSharedMedia-3.0")
+
+	local fontFiles = {}
+	local fontNames = {}
+
+	for _, name in ipairs(LSM:List("font")) do
+		local file = LSM:Fetch("font", name)
+		if file then
+			fontFiles[#fontFiles + 1] = file
+			fontNames[file] = name
+		end
+	end
+
 	local verticalSpacing = mini.VerticalSpacing
 	local horizontalSpacing = mini.HorizontalSpacing
 	local panel = CreateFrame("Frame")
@@ -149,7 +167,7 @@ function M:Init()
 	})
 
 	togglesDivider:SetPoint("LEFT", panel)
-	togglesDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0 )
+	togglesDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
 	togglesDivider:SetPoint("TOP", subtitle, "BOTTOM", 0, -verticalSpacing)
 
 	local enableColors = mini:Checkbox({
@@ -211,6 +229,54 @@ function M:Init()
 	enableDurability:SetPoint("TOP", enableColors, "TOP", 0, 0)
 	enableDurability:SetPoint("LEFT", panel, "LEFT", columnWidth * 3, -verticalSpacing)
 
+	local lockFrame = mini:Checkbox({
+		Parent = panel,
+		LabelText = "Locked",
+		GetValue = function()
+			return db.Locked
+		end,
+		SetValue = function(value)
+			db.Locked = value
+			addon:Refresh()
+		end,
+	})
+
+	lockFrame:SetPoint("TOPLEFT", enableColors, "BOTTOMLEFT", 0, -verticalSpacing)
+
+	local enableMicroMenu = mini:Checkbox({
+		Parent = panel,
+		LabelText = "Enable Micro Menu",
+		GetValue = function()
+			return db.MicroMenuEnabled
+		end,
+		SetValue = function(value)
+			db.MicroMenuEnabled = value
+		end,
+	})
+
+	enableMicroMenu:SetPoint("TOP", lockFrame, "TOP", 0, 0)
+	enableMicroMenu:SetPoint("LEFT", panel, "LEFT", columnWidth, 0)
+
+	local enableOutline = mini:Checkbox({
+		Parent = panel,
+		LabelText = "Enable Text Outline",
+		GetValue = function()
+			return db.Font.EnableOutline
+		end,
+		SetValue = function(value)
+			db.Font.EnableOutline = value
+			if value then
+				db.Font.Flags = "OUTLINE"
+			else
+				db.Font.Flags = ""
+			end
+			addon:Refresh()
+		end,
+	})
+
+	enableOutline:SetPoint("TOP", enableMicroMenu, "TOP", 0, 0)
+	enableOutline:SetPoint("LEFT", panel, "LEFT", columnWidth * 2, 0)
+
 	local sizeDivider = mini:Divider({
 		Parent = panel,
 		Text = "Size",
@@ -218,7 +284,7 @@ function M:Init()
 
 	sizeDivider:SetPoint("LEFT", panel)
 	sizeDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
-	sizeDivider:SetPoint("TOP", enableDurability, "BOTTOM", 0, -verticalSpacing)
+	sizeDivider:SetPoint("TOP", lockFrame, "BOTTOM", 0, -verticalSpacing)
 
 	local sizeSlider = mini:Slider({
 		Parent = panel,
@@ -231,12 +297,39 @@ function M:Init()
 			return tonumber(db.Font.Size) or dbDefaults.Font.Size
 		end,
 		SetValue = function(value)
-			db.Font.Size = mini:ClampInt(value, 4, 50, dbDefaults.Font.Size)
-			addon:Refresh()
+			local newSize = mini:ClampInt(value, 4, 50, dbDefaults.Font.Size)
+
+			if db.Font.Size ~= newSize then
+				db.Font.Size = newSize
+				addon:Refresh()
+			end
 		end,
 	})
 
 	sizeSlider.Slider:SetPoint("TOPLEFT", sizeDivider, "BOTTOMLEFT", 0, -verticalSpacing * 3)
+
+	local fontLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	fontLabel:SetText("Font Style")
+	fontLabel:SetJustifyH("LEFT")
+	fontLabel:SetPoint("TOPLEFT", sizeSlider.Slider, "BOTTOMLEFT", 0, -verticalSpacing)
+
+	local fontDropdown = mini:Dropdown({
+		Parent = panel,
+		Items = fontFiles,
+		GetText = function(value)
+			return fontNames[value] or value
+		end,
+		GetValue = function()
+			return db.Font.File
+		end,
+		SetValue = function(value)
+			db.Font.File = value
+			addon:Refresh()
+		end,
+	})
+
+	fontDropdown:SetWidth(220)
+	fontDropdown:SetPoint("TOPLEFT", fontLabel, "BOTTOMLEFT", 0, -4)
 
 	local textDivider = mini:Divider({
 		Parent = panel,
@@ -245,7 +338,7 @@ function M:Init()
 
 	textDivider:SetPoint("LEFT", panel)
 	textDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
-	textDivider:SetPoint("TOP", sizeSlider.Slider, "BOTTOM", 0, -verticalSpacing)
+	textDivider:SetPoint("TOP", fontDropdown, "BOTTOM", 0, -verticalSpacing)
 
 	local anchor = mini:TextBlock({
 		Parent = panel,

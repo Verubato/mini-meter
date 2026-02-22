@@ -11,6 +11,38 @@ local lastWidth, lastHeight
 local resizeQueued = false
 ---@type Db
 local db
+local libQTip = LibStub("LibQTip-1.0")
+local tooltip
+local cellProvider, cellPrototype = libQTip:CreateCellProvider()
+
+function cellPrototype:InitializeCell()
+	self.texture = self:CreateTexture()
+	self.texture:SetAllPoints(self)
+end
+
+function cellPrototype:SetupCell(_, value, _, _, iconCoords, unitID)
+	local tex = self.texture
+	tex:SetWidth(18)
+	tex:SetHeight(18)
+
+	if unitID then
+		SetPortraitTexture(tex, unitID)
+		if iconCoords then
+			---@diagnostic disable-next-line: deprecated
+			tex:SetTexCoord(unpack(iconCoords))
+		end
+	else
+		tex:SetTexture(value)
+		-- Apply standard cropping to all icons to ensure consistent sizing
+		tex:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+	end
+
+	return tex:GetWidth(), tex:GetHeight()
+end
+
+function cellPrototype:ReleaseCell()
+	-- required for prototype
+end
 
 local function UpdatePlaceholders(format, value)
 	return string.gsub(format or "", "$value", value)
@@ -199,6 +231,143 @@ local function OnEvent()
 	UpdateText()
 end
 
+local function MouseHandler(event, func, button, ...)
+	func(event, func, button, ...)
+	libQTip:Release(tooltip)
+	tooltip = nil
+end
+
+local function ShowMicroMenu()
+	-- Prevent menu from showing during combat
+	if InCombatLockdown() then
+		mini:NotifyCombatLockdown()
+		return
+	end
+
+	if tooltip then
+		libQTip:Release(tooltip)
+	end
+
+	tooltip = libQTip:Acquire("MiniMeterTooltip", 2, "LEFT", "LEFT")
+	tooltip:Clear()
+
+	-- Character Info with portrait
+	local y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "", cellProvider, { 0.2, 0.8, 0.2, 0.8 }, "player")
+	tooltip:SetCell(y, 2, "Character Info")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		ToggleCharacter("PaperDollFrame")
+	end)
+
+	-- Professions
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\ICONS\\Trade_BlackSmithing", cellProvider)
+	tooltip:SetCell(y, 2, "Professions")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		if not InCombatLockdown() then
+			ToggleProfessionsBook()
+		end
+	end)
+
+	-- Talents & Spellbook
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\ICONS\\Ability_Marksmanship", cellProvider)
+	tooltip:SetCell(y, 2, "Talents & Spellbook")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		if not InCombatLockdown() then
+			if ToggleTalentFrame then
+				ToggleTalentFrame()
+			elseif TogglePlayerSpellsFrame then
+				TogglePlayerSpellsFrame()
+			end
+		end
+	end)
+
+	-- Achievements
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\ICONS\\Achievement_Quests_Completed_07", cellProvider)
+	tooltip:SetCell(y, 2, "Achievements")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		ToggleAchievementFrame()
+	end)
+
+	-- Quest Log
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\GossipFrame\\ActiveQuestIcon", cellProvider)
+	tooltip:SetCell(y, 2, "Quest Log")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		ToggleQuestLog()
+	end)
+
+	-- Housing Dashboard
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\ICONS\\Misc_RNRPaintButtonUp", cellProvider)
+	tooltip:SetCell(y, 2, "Housing Dashboard")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		if HousingMicroButton then
+			HousingMicroButton:Click()
+		end
+	end)
+
+	-- Guild & Communities
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\ICONS\\INV_Shirt_GuildTabard_01", cellProvider)
+	tooltip:SetCell(y, 2, "Guild & Communities")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		ToggleGuildFrame()
+	end)
+
+	-- Group Finder
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\ICONS\\INV_Misc_Eye_02", cellProvider)
+	tooltip:SetCell(y, 2, "Group Finder")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		PVEFrame_ToggleFrame()
+	end)
+
+	-- Warband Collections
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\ICONS\\MountJournalPortrait", cellProvider)
+	tooltip:SetCell(y, 2, "Warband Collections")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		ToggleCollectionsJournal()
+	end)
+
+	-- Adventure Guide
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\ICONS\\INV_Misc_Book_07", cellProvider)
+	tooltip:SetCell(y, 2, "Adventure Guide")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		ToggleEncounterJournal()
+	end)
+
+	-- Game Menu
+	y = tooltip:AddLine()
+	tooltip:SetCell(y, 1, "Interface\\ICONS\\INV_Gizmo_02", cellProvider)
+	tooltip:SetCell(y, 2, "Game Menu")
+	tooltip:SetLineScript(y, "OnMouseUp", MouseHandler, function()
+		if not InCombatLockdown() then
+			if GameMenuFrame and GameMenuFrame:IsShown() then
+				HideUIPanel(GameMenuFrame)
+			else
+				ShowUIPanel(GameMenuFrame)
+			end
+		end
+	end)
+
+	tooltip:SetAutoHideDelay(0.1, draggable)
+	tooltip:SmartAnchorTo(draggable)
+	tooltip:Show()
+end
+
+local function ApplyLockState()
+	if db.Locked then
+		draggable:SetMovable(false)
+	else
+		draggable:SetMovable(true)
+	end
+end
+
 local function Init()
 	config:Init()
 
@@ -217,12 +386,22 @@ local function Init()
 	draggable:Show()
 
 	draggable:SetScript("OnDragStart", function(self)
-		self:StartMoving()
+		if not db.Locked then
+			self:StartMoving()
+		end
 	end)
 
 	draggable:SetScript("OnDragStop", function(self)
 		self:StopMovingOrSizing()
 		SavePosition()
+	end)
+
+	-- Add hover scripts for micro menu (using LibQTip)
+	-- LibQTip handles auto-hide, so don't need OnLeave
+	draggable:SetScript("OnEnter", function()
+		if db.MicroMenuEnabled then
+			ShowMicroMenu()
+		end
 	end)
 
 	text = UIParent:CreateFontString(nil, "ARTWORK", "GameFontWhiteLarge")
@@ -234,6 +413,7 @@ local function Init()
 	UpdateText()
 	QueueResizeDraggable()
 	StartTicker()
+	ApplyLockState()
 end
 
 local function OnAddonLoaded()
@@ -243,6 +423,7 @@ end
 function addon:Refresh()
 	UpdateFont()
 	UpdateText()
+	ApplyLockState()
 end
 
 mini:WaitForAddonLoad(OnAddonLoaded)
