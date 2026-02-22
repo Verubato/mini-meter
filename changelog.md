@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.0
+
+- Added hover micro menu.
+- Added font selection.
+
 ## 2.1.1
 
 Fixed wrong text label for latency.
