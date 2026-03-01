@@ -238,9 +238,7 @@ local function MouseHandler(event, func, button, ...)
 end
 
 local function ShowMicroMenu()
-	-- Prevent menu from showing during combat
 	if InCombatLockdown() then
-		mini:NotifyCombatLockdown()
 		return
 	end
 
