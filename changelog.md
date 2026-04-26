@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.2
+
+Font registration fixes.
+
 ## 3.0.1
 
 Removed micro menu hover combat lockdown notification.
