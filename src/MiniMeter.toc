@@ -1,8 +1,8 @@
-## Interface: 120001, 120000, 110207, 50503, 40402, 38000, 30405, 30300, 20505, 11508
+## Interface: 120005, 50503, 40402, 38000, 30405, 30300, 20505, 11508
 ## Title: MiniMeter
 ## Notes: Shows fps and ping values on your UI.
 ## Author: Verz
-## Version: 3.0.2
+## Version: 3.1.0
 ## IconTexture: Interface\AddOns\MiniMeter\Icon.blp
 ## SavedVariables: MiniMeterDB
 ## X-Curse-Project-ID: 1419348

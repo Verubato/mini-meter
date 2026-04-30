@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.0
+
+Added reset confirmation popup.
+
 ## 3.0.2
 
 Font registration fixes.
