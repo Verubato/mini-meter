@@ -2,6 +2,20 @@ local addonName, addon = ...
 ---@type MiniFramework
 local mini = addon.Framework
 
+StaticPopupDialogs["MINIMETER_CONFIRM_RESET"] = {
+	text = "%s",
+	button1 = YES,
+	button2 = NO,
+	OnAccept = function(_, data)
+		if data and data.OnYes then
+			data.OnYes()
+		end
+	end,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+}
+
 ---@type Db
 local db
 
@@ -403,14 +417,18 @@ function M:Init()
 
 	local resetBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
 	resetBtn:SetSize(120, 26)
-	resetBtn:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -16, 16)
+	resetBtn:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -16, -16)
 	resetBtn:SetText("Reset")
 	resetBtn:SetScript("OnClick", function()
-		db = mini:ResetSavedVars(dbDefaults)
+		StaticPopup_Show("MINIMETER_CONFIRM_RESET", "Are you sure you want to reset to default settings?", nil, {
+			OnYes = function()
+				db = mini:ResetSavedVars(dbDefaults)
 
-		panel:MiniRefresh()
-		addon:Refresh()
-		mini:Notify("Settings reset to default.")
+				panel:MiniRefresh()
+				addon:Refresh()
+				mini:Notify("Settings reset to default.")
+			end,
+		})
 	end)
 
 	mini:RegisterSlashCommand(category, panel, {
