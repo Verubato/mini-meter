@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.1
+
+12.0.7 TOC bump.
+
 ## 3.1.0
 
 Added reset confirmation popup.
