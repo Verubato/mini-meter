@@ -169,7 +169,6 @@ function M:Init()
 	local header = mini:PanelHeader({
 		Parent = panel,
 		Description = "Shows a simple status meter on your UI.",
-		Y = -verticalSpacing,
 		Gap = 8,
 	})
 
