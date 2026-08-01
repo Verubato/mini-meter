@@ -151,28 +151,6 @@ function RgbNumber(r, g, b, value)
 	return string.format("|cFF%02x%02x%02x%d|r", r, g, b, value)
 end
 
-local function ApplyPosition()
-	local point = db.Point
-	local relativePoint = db.RelativePoint
-	local relativeTo = (db.RelativeTo and _G[db.RelativeTo]) or UIParent
-	local x = db.X
-	local y = db.Y
-
-	draggable:ClearAllPoints()
-	draggable:SetPoint(point, relativeTo, relativePoint, x, y)
-end
-
-local function SavePosition()
-	local point, relativeTo, relativePoint, x, y = draggable:GetPoint(1)
-
-	db.Point = point
-	-- ensure a non-nil value so it doesn't get overriden by defaults
-	db.RelativeTo = relativeTo or "UIParent"
-	db.RelativePoint = relativePoint
-	db.X = x
-	db.Y = y
-end
-
 local function UpdateFont()
 	text:SetFont(db.Font.File, db.Font.Size, db.Font.Flags)
 end
@@ -227,7 +205,7 @@ local function StartTicker()
 end
 
 local function OnEvent()
-	ApplyPosition()
+	mini:ApplyPosition(draggable, db, config.DbDefaults)
 	UpdateText()
 end
 
@@ -359,11 +337,15 @@ local function ShowMicroMenu()
 end
 
 local function ApplyLockState()
-	if db.Locked then
-		draggable:SetMovable(false)
-	else
-		draggable:SetMovable(true)
-	end
+	draggable:SetMovable(not db.Locked)
+
+	-- Only movability is locked, never mouse input - the micro menu is a hover handler on the
+	-- same frame and has to keep working while the bar is locked in place.
+	draggable:EnableMouse(true)
+end
+
+local function IsLocked()
+	return db.Locked and true or false
 end
 
 local function Init()
@@ -377,22 +359,9 @@ local function Init()
 	eventsFrame:SetScript("OnEvent", OnEvent)
 
 	draggable = CreateFrame("Frame", nil, UIParent)
-	draggable:SetClampedToScreen(true)
-	draggable:EnableMouse(true)
-	draggable:SetMovable(true)
-	draggable:RegisterForDrag("LeftButton")
 	draggable:Show()
 
-	draggable:SetScript("OnDragStart", function(self)
-		if not db.Locked then
-			self:StartMoving()
-		end
-	end)
-
-	draggable:SetScript("OnDragStop", function(self)
-		self:StopMovingOrSizing()
-		SavePosition()
-	end)
+	mini:MakeMovable(draggable, db, { IsLocked = IsLocked })
 
 	-- Add hover scripts for micro menu (using LibQTip)
 	-- LibQTip handles auto-hide, so don't need OnLeave

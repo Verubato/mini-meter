@@ -11,6 +11,6 @@ Libs/LibStub/LibStub.lua
 Libs/LibSharedMedia-3.0/LibSharedMedia-3.0.lua
 Libs/LibQTip-1.0/LibQTip-1.0.lua
 Fonts.lua
-MiniFramework.lua
+Libs\MiniFramework\MiniFramework.xml
 Config.lua
 MiniMeter.lua
