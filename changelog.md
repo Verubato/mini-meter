@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.2
+
+Fixed a load error caused by a missing CallbackHandler library.
+
 ## 3.2.1
 
 Updated interface versions for the latest Classic, TBC and Mists builds.
