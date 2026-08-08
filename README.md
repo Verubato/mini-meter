@@ -12,11 +12,11 @@ Feedback and feature requests are more than welcome!
 
 ## Screenshots
 
-![MiniMeter screenshot](https://raw.githubusercontent.com/Verubato/mini-meter/main/assets/ScreenshotSettings.png)
+![MiniMeter screenshot](https://raw.githubusercontent.com/Verubato/mini-meter/main/assets/Screenshots/Settings.png)
 
-![MiniMeter screenshot](https://raw.githubusercontent.com/Verubato/mini-meter/main/assets/Screenshot2.png)
+![MiniMeter screenshot](https://raw.githubusercontent.com/Verubato/mini-meter/main/assets/Screenshots/MeterDetailed.png)
 
-![MiniMeter screenshot](https://raw.githubusercontent.com/Verubato/mini-meter/main/assets/Screenshot.png)
+![MiniMeter screenshot](https://raw.githubusercontent.com/Verubato/mini-meter/main/assets/Screenshots/Meter.png)
 
 ## Download
 
