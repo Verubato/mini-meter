@@ -423,7 +423,7 @@ function M:Init()
 
 				panel:MiniRefresh()
 				addon:Refresh()
-				mini:Notify("Settings reset to default.")
+				mini:NotifyWithPrefix("Settings reset to default.")
 			end,
 		})
 	end)
