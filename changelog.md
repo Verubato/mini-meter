@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.3
+
+Updated the addon icon to the new shared Mini style.
+
 ## 3.2.2
 
 Fixed a load error caused by a missing CallbackHandler library.
