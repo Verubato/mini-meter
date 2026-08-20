@@ -9,6 +9,11 @@ local text
 local ticker
 local lastWidth, lastHeight
 local resizeQueued = false
+-- The last string written to the fontstring, so an unchanged tick skips the write.
+local lastMessage
+-- Cached durability, and whether the client has said it moved.
+local durabilityPercent
+local durabilityStale = true
 ---@type Db
 local db
 local libQTip = LibStub("LibQTip-1.0")
@@ -48,7 +53,7 @@ local function UpdatePlaceholders(format, value)
 	return string.gsub(format or "", "$value", value)
 end
 
-local function GetPlayerDurabilityPercent()
+local function ReadPlayerDurabilityPercent()
 	local curTotal, maxTotal = 0, 0
 
 	for slot = 1, 19 do
@@ -67,6 +72,17 @@ local function GetPlayerDurabilityPercent()
 	end
 
 	return curTotal / maxTotal
+end
+
+---Durability moves when you take a hit, repair, or change gear, none of which happen on a
+---clock, so the nineteen slot reads happen when the client says something moved.
+local function GetPlayerDurabilityPercent()
+	if durabilityStale then
+		durabilityStale = false
+		durabilityPercent = ReadPlayerDurabilityPercent()
+	end
+
+	return durabilityPercent
 end
 
 local function ResizeDraggableToText()
@@ -105,7 +121,7 @@ local function QueueResizeDraggable()
 	C_Timer.After(0, ResizeDraggableToText)
 end
 
-function FpsColour(fps)
+local function FpsColour(fps)
 	if not db.Colors.Enabled then
 		return db.Colors.Default
 	end
@@ -119,7 +135,7 @@ function FpsColour(fps)
 	return db.Colors.Good
 end
 
-function LatencyColour(fps)
+local function LatencyColour(fps)
 	if not db.Colors.Enabled then
 		return db.Colors.Default
 	end
@@ -133,7 +149,7 @@ function LatencyColour(fps)
 	return db.Colors.Bad
 end
 
-function DurabilityColour(durability)
+local function DurabilityColour(durability)
 	if not db.Colors.Enabled then
 		return db.Colors.Default
 	end
@@ -147,12 +163,16 @@ function DurabilityColour(durability)
 	return db.Colors.Good
 end
 
-function RgbNumber(r, g, b, value)
+local function RgbNumber(r, g, b, value)
 	return string.format("|cFF%02x%02x%02x%d|r", r, g, b, value)
 end
 
 local function UpdateFont()
 	text:SetFont(db.Font.File, db.Font.Size, db.Font.Flags)
+
+	-- The string is unchanged but its measured size is not, so let the next UpdateText through
+	-- to re-measure the draggable.
+	lastMessage = nil
 end
 
 local function UpdateText()
@@ -187,6 +207,14 @@ local function UpdateText()
 	end
 
 	local message = table.concat(parts, " ")
+
+	-- SetText re-lays out the fontstring and the resize below measures it, so an unchanged
+	-- string has nothing left to do. UpdateFont clears this when the metrics move.
+	if message == lastMessage then
+		return
+	end
+
+	lastMessage = message
 	text:SetText(message)
 
 	QueueResizeDraggable()
@@ -204,7 +232,15 @@ local function StartTicker()
 	ticker = C_Timer.NewTicker(db.UpdateInterval, OnTick)
 end
 
-local function OnEvent()
+local function OnEvent(_, event)
+	-- Equipping a fresh item moves the total without any item's durability changing, so both
+	-- events matter. They arrive in bursts, and the ticker is soon enough for a durability
+	-- readout, so this only marks the value stale.
+	if event == "UPDATE_INVENTORY_DURABILITY" or event == "PLAYER_EQUIPMENT_CHANGED" then
+		durabilityStale = true
+		return
+	end
+
 	mini:ApplyPosition(draggable, db, config.DbDefaults)
 	UpdateText()
 end
@@ -356,6 +392,8 @@ local function Init()
 	-- might need to wait a bit later for frames to be created before applying our position
 	eventsFrame = CreateFrame("Frame")
 	eventsFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	eventsFrame:RegisterEvent("UPDATE_INVENTORY_DURABILITY")
+	eventsFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 	eventsFrame:SetScript("OnEvent", OnEvent)
 
 	draggable = CreateFrame("Frame", nil, UIParent)
