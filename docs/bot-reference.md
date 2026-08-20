@@ -8,7 +8,7 @@ MiniMeter shows a small draggable text display on your UI with your FPS, world l
 
 | Item | Value |
 |---|---|
-| Addon version | 3.2.4 |
+| Addon version | 3.2.6 |
 | Author | Verz |
 | Interface versions (TOC) | 120100, 50504, 40402, 38002, 38000, 30405, 30300, 20506, 11509 (Retail and Classic clients) |
 | Saved variables | MiniMeterDB (account-wide) |

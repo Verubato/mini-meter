@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.6
+
+Reduced CPU use: durability is read when it changes rather than on every update, and the display is only redrawn when its text changes.
+
 ## 3.2.5
 
 Added a Mini category so the addon groups with the other Mini addons in the addon list.
