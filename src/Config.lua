@@ -27,6 +27,8 @@ local dbDefaults = {
 	RelativePoint = "BOTTOM",
 	X = 0,
 	Y = -25,
+	-- Which way the display expands as the text length changes: LEFT, CENTER, or RIGHT.
+	Grow = "CENTER",
 
 	UpdateInterval = 1,
 	Locked = false,
@@ -319,6 +321,7 @@ function M:Init()
 
 	sizeSlider.Slider:SetPoint("TOPLEFT", sizeDivider, "BOTTOMLEFT", 0, -verticalSpacing * 3)
 
+	local dropdownWidth = 220
 	local fontLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 	fontLabel:SetText("Font Style")
 	fontLabel:SetJustifyH("LEFT")
@@ -339,8 +342,43 @@ function M:Init()
 		end,
 	})
 
-	fontDropdown:SetWidth(220)
+	fontDropdown:SetWidth(dropdownWidth)
 	fontDropdown:SetPoint("TOPLEFT", fontLabel, "BOTTOMLEFT", 0, -4)
+
+	local growNames = {
+		LEFT = "Left",
+		CENTER = "Center",
+		RIGHT = "Right",
+	}
+
+	local growLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	growLabel:SetText("Grow Direction")
+	growLabel:SetJustifyH("LEFT")
+	growLabel:SetPoint("TOPLEFT", fontLabel, "TOPLEFT", dropdownWidth + horizontalSpacing, 0)
+
+	local growDropdown = mini:Dropdown({
+		Parent = panel,
+		Items = { "LEFT", "CENTER", "RIGHT" },
+		TooltipTitle = "Grow Direction",
+		Tooltip = "Which way the display expands as the text gets longer or shorter.",
+		GetText = function(value)
+			return growNames[value] or value
+		end,
+		GetValue = function()
+			return db.Grow
+		end,
+		SetValue = function(value)
+			if db.Grow == value then
+				return
+			end
+
+			db.Grow = value
+			addon:ApplyGrow()
+		end,
+	})
+
+	growDropdown:SetWidth(160)
+	growDropdown:SetPoint("TOPLEFT", growLabel, "BOTTOMLEFT", 0, -4)
 
 	local textDivider = mini:Divider({
 		Parent = panel,

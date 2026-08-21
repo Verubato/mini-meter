@@ -16,6 +16,14 @@ local durabilityPercent
 local durabilityStale = true
 ---@type Db
 local db
+-- The edge that holds still for each grow direction. The frame is resized to the text on every
+-- update, so the edge its anchor point names is the only part that stays where it was.
+local growEdges = {
+	LEFT = "RIGHT",
+	CENTER = "",
+	RIGHT = "LEFT",
+}
+
 local libQTip = LibStub("LibQTip-1.0")
 local tooltip
 local cellProvider, cellPrototype = libQTip:CreateCellProvider()
@@ -121,6 +129,16 @@ local function QueueResizeDraggable()
 
 	-- wait for the font string to have updated it's rendered width/height before we compute it
 	C_Timer.After(0, ResizeDraggableToText)
+end
+
+---Pins the text to the same edge the frame is anchored by, so a longer string runs away from
+---that edge instead of spreading either side of the frame's centre. Without this the text sits
+---wherever the frame's last measured size put it, which lags a tick behind the string.
+local function AnchorText()
+	local point = draggable:GetPoint(1) or "CENTER"
+
+	text:ClearAllPoints()
+	text:SetPoint(point, draggable, point, 0, 0)
 end
 
 local function FpsColour(fps)
@@ -244,6 +262,7 @@ local function OnEvent(_, event)
 	end
 
 	mini:ApplyPosition(draggable, db, config.DbDefaults)
+	AnchorText()
 	UpdateText()
 end
 
@@ -386,6 +405,53 @@ local function IsLocked()
 	return db.Locked and true or false
 end
 
+---The saved anchor point with its horizontal half replaced by the one the grow direction wants.
+local function GrowPoint(point)
+	local vertical = point:match("^TOP") or point:match("^BOTTOM") or ""
+	local wanted = vertical .. (growEdges[db.Grow] or "")
+
+	return wanted ~= "" and wanted or "CENTER"
+end
+
+---Distance from the frame's left edge to the given anchor point.
+local function PointOffset(point, width)
+	if point:find("LEFT") then
+		return 0
+	end
+
+	if point:find("RIGHT") then
+		return width
+	end
+
+	return width / 2
+end
+
+---Re-anchors the frame to the edge the grow direction keeps still, leaving it exactly where it
+---sits on screen. Only runs when the user drags or picks a direction: the new offset is worked
+---out from the width at that moment, so doing it on every update would drift the frame rather
+---than hold it.
+local function ApplyGrowAnchor()
+	local point, relativeTo, relativePoint, x, y = draggable:GetPoint(1)
+
+	if not point then
+		return
+	end
+
+	local wanted = GrowPoint(point)
+
+	if wanted == point then
+		return
+	end
+
+	local width = draggable:GetWidth() or 0
+	local shift = PointOffset(wanted, width) - PointOffset(point, width)
+
+	draggable:ClearAllPoints()
+	draggable:SetPoint(wanted, relativeTo or UIParent, relativePoint or point, x + shift, y)
+	mini:SavePosition(draggable, db)
+	AnchorText()
+end
+
 local function Init()
 	config:Init()
 
@@ -401,7 +467,7 @@ local function Init()
 	draggable = CreateFrame("Frame", nil, UIParent)
 	draggable:Show()
 
-	mini:MakeMovable(draggable, db, { IsLocked = IsLocked })
+	mini:MakeMovable(draggable, db, { IsLocked = IsLocked, OnMoved = ApplyGrowAnchor })
 
 	-- Add hover scripts for micro menu (using LibQTip)
 	-- LibQTip handles auto-hide, so don't need OnLeave
@@ -412,9 +478,10 @@ local function Init()
 	end)
 
 	text = UIParent:CreateFontString(nil, "ARTWORK", "GameFontWhiteLarge")
-	text:SetPoint("CENTER", draggable, "CENTER", 0, 0)
 	text:SetWordWrap(false)
 	text:SetNonSpaceWrap(false)
+
+	AnchorText()
 
 	UpdateFont()
 	UpdateText()
@@ -431,6 +498,11 @@ function addon:Refresh()
 	UpdateFont()
 	UpdateText()
 	ApplyLockState()
+end
+
+---Called when the grow direction changes, to move the anchor onto the new edge.
+function addon:ApplyGrow()
+	ApplyGrowAnchor()
 end
 
 mini:WaitForAddonLoad(OnAddonLoaded)
