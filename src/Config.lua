@@ -302,7 +302,7 @@ function M:Init()
 	local sizeSlider = mini:Slider({
 		Parent = panel,
 		LabelText = "Size",
-		Width = (columnWidth * columns) - horizontalSpacing,
+		Width = (columnWidth * 2) - horizontalSpacing,
 		Min = 4,
 		Max = 50,
 		Step = 1,
@@ -330,7 +330,7 @@ function M:Init()
 	local growLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 	growLabel:SetText("Grow Direction")
 	growLabel:SetJustifyH("LEFT")
-	growLabel:SetPoint("TOPLEFT", sizeSlider.Slider, "BOTTOMLEFT", 0, -verticalSpacing)
+	growLabel:SetPoint("BOTTOMLEFT", sizeSlider.Label, "BOTTOMLEFT", columnWidth * 2, 0)
 
 	local growDropdown = mini:Dropdown({
 		Parent = panel,
@@ -363,7 +363,7 @@ function M:Init()
 
 	textDivider:SetPoint("LEFT", panel)
 	textDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
-	textDivider:SetPoint("TOP", growDropdown, "BOTTOM", 0, -verticalSpacing)
+	textDivider:SetPoint("TOP", sizeSlider.Slider, "BOTTOM", 0, -verticalSpacing)
 
 	local fontLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 	fontLabel:SetText("Font Style")
@@ -391,9 +391,7 @@ function M:Init()
 	local anchor = mini:TextBlock({
 		Parent = panel,
 		Lines = {
-			"Note: ",
-			"  - $value gets replaced with the actual fps/latency/durability value.",
-			"  - For example 'FPS: $value' becomes 'FPS: 123'",
+			"Note: $value is replaced with the live value, so 'FPS: $value' shows as 'FPS: 123'.",
 		},
 	})
 
@@ -414,7 +412,7 @@ function M:Init()
 
 	local labelWidth = 100
 	fpsEditBox.Label:SetWidth(labelWidth)
-	fpsEditBox.Label:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -verticalSpacing * 2)
+	fpsEditBox.Label:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -verticalSpacing)
 	fpsEditBox.EditBox:SetPoint("LEFT", fpsEditBox.Label, "RIGHT", horizontalSpacing, 0)
 
 	local latencyEditBox = mini:EditBox({
