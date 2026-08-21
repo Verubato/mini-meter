@@ -412,6 +412,7 @@ function M:Init()
 
 	local labelWidth = 100
 	fpsEditBox.Label:SetWidth(labelWidth)
+	fpsEditBox.Label:SetJustifyH("LEFT")
 	fpsEditBox.Label:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -verticalSpacing)
 	fpsEditBox.EditBox:SetPoint("LEFT", fpsEditBox.Label, "RIGHT", horizontalSpacing, 0)
 
@@ -428,6 +429,7 @@ function M:Init()
 	})
 
 	latencyEditBox.Label:SetWidth(labelWidth)
+	latencyEditBox.Label:SetJustifyH("LEFT")
 	latencyEditBox.Label:SetPoint("TOPLEFT", fpsEditBox.Label, "BOTTOMLEFT", 0, -verticalSpacing)
 	latencyEditBox.EditBox:SetPoint("LEFT", latencyEditBox.Label, "RIGHT", horizontalSpacing, 0)
 
@@ -444,6 +446,7 @@ function M:Init()
 	})
 
 	durabilityEditBox.Label:SetWidth(labelWidth)
+	durabilityEditBox.Label:SetJustifyH("LEFT")
 	durabilityEditBox.Label:SetPoint("TOPLEFT", latencyEditBox.Label, "BOTTOMLEFT", 0, -verticalSpacing)
 	durabilityEditBox.EditBox:SetPoint("LEFT", durabilityEditBox.Label, "RIGHT", horizontalSpacing, 0)
 
