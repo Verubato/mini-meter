@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.0
+
+- Added a Grow Direction setting, so the display expands from the edge you lined it up against instead of spreading either side of its centre.
+- Fixed the display drifting out of place as its text changed length.
+
 ## 3.2.6
 
 Reduced CPU use: durability is read when it changes rather than on every update, and the display is only redrawn when its text changes.

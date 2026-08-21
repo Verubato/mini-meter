@@ -8,7 +8,7 @@ MiniMeter shows a small draggable text display on your UI with your FPS, world l
 
 | Item | Value |
 |---|---|
-| Addon version | 3.2.6 |
+| Addon version | 3.3.0 |
 | Author | Verz |
 | Interface versions (TOC) | 120100, 50504, 40402, 38002, 38000, 30405, 30300, 20506, 11509 (Retail and Classic clients) |
 | Saved variables | MiniMeterDB (account-wide) |
@@ -34,6 +34,7 @@ Note: /mm is NOT a MiniMeter command; it is used by the MiniMarkers addon.
 
 - Drag the text with the left mouse button to move it anywhere. The position is saved and the frame is clamped to the screen.
 - The "Locked" checkbox stops it being dragged. Mouse input stays enabled while locked so the micro menu keeps working.
+- The text is sized to whatever it currently says, so its length changes as the numbers do. "Grow Direction" picks which edge holds still while that happens: Right keeps the left edge fixed, Left keeps the right edge fixed, and Center expands both ways. The anchor is rewritten when you drag the text or change the setting, never on its own.
 
 ### Color coding
 
@@ -73,16 +74,20 @@ All settings are in the options panel, grouped under dividers. Changes to checkb
 | Enable Micro Menu | On | Show the hover micro menu |
 | Enable Text Outline | On | Outline on the font (sets font flag OUTLINE) |
 
-### Size
+### Size & Position
 
 | Setting | Default | Range |
 |---|---|---|
 | Size (slider, font size) | 18 | 4 to 50, step 1 |
-| Font Style (dropdown) | Friz Quadrata (Fonts\FRIZQT__.TTF) | Any font registered with LibSharedMedia |
-
-MiniMeter bundles about 45 fonts and registers them with LibSharedMedia, so they also appear in other addons that use shared media. Fonts registered by your other addons appear in MiniMeter's dropdown too.
+| Grow Direction (dropdown) | Center | Left, Center, or Right |
 
 ### Text
+
+| Setting | Default |
+|---|---|
+| Font Style (dropdown) | Friz Quadrata (Fonts\FRIZQT__.TTF), any font registered with LibSharedMedia |
+
+MiniMeter bundles about 45 fonts and registers them with LibSharedMedia, so they also appear in other addons that use shared media. Fonts registered by your other addons appear in MiniMeter's dropdown too.
 
 Each part has an editable format string. The placeholder $value is replaced with the number. Example: "FPS: $value" becomes "FPS: 123".
 
@@ -105,6 +110,7 @@ The "Reset" button (top right of the options panel) restores all settings to def
 
 - "The text is gone / I can't find it": check that at least one of Enable FPS / Enable Latency / Enable Durability is on. The default spot is just below the minimap. If a minimap addon removed the frame it was anchored to, the text re-anchors to the screen and can end up at the screen edge. The Reset button restores the default position.
 - "I can't drag it": untick "Locked" in the options. Drag with the left mouse button.
+- "It shifts a little when I log in on another character": the text is sized to its content, and a different character's durability or latency reads a different length. Set Grow Direction to Right if you lined the display up against the left of your screen, or Left if you lined it up against the right, and that edge stays put.
 - "Everything is white / no colors": turn on "Enable Colors".
 - "Durability isn't showing": it is hidden when nothing you have equipped has durability. Also check "Enable Durability".
 - "The micro menu doesn't open": turn on "Enable Micro Menu". It never opens while you are in combat.
