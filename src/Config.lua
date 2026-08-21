@@ -292,7 +292,7 @@ function M:Init()
 
 	local sizeDivider = mini:Divider({
 		Parent = panel,
-		Text = "Size",
+		Text = "Size & Position",
 	})
 
 	sizeDivider:SetPoint("LEFT", panel)
@@ -321,30 +321,6 @@ function M:Init()
 
 	sizeSlider.Slider:SetPoint("TOPLEFT", sizeDivider, "BOTTOMLEFT", 0, -verticalSpacing * 3)
 
-	local dropdownWidth = 220
-	local fontLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-	fontLabel:SetText("Font Style")
-	fontLabel:SetJustifyH("LEFT")
-	fontLabel:SetPoint("TOPLEFT", sizeSlider.Slider, "BOTTOMLEFT", 0, -verticalSpacing)
-
-	local fontDropdown = mini:Dropdown({
-		Parent = panel,
-		Items = fontFiles,
-		GetText = function(value)
-			return fontNames[value] or value
-		end,
-		GetValue = function()
-			return db.Font.File
-		end,
-		SetValue = function(value)
-			db.Font.File = value
-			addon:Refresh()
-		end,
-	})
-
-	fontDropdown:SetWidth(dropdownWidth)
-	fontDropdown:SetPoint("TOPLEFT", fontLabel, "BOTTOMLEFT", 0, -4)
-
 	local growNames = {
 		LEFT = "Left",
 		CENTER = "Center",
@@ -354,7 +330,7 @@ function M:Init()
 	local growLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 	growLabel:SetText("Grow Direction")
 	growLabel:SetJustifyH("LEFT")
-	growLabel:SetPoint("TOPLEFT", fontLabel, "TOPLEFT", dropdownWidth + horizontalSpacing, 0)
+	growLabel:SetPoint("TOPLEFT", sizeSlider.Slider, "BOTTOMLEFT", 0, -verticalSpacing)
 
 	local growDropdown = mini:Dropdown({
 		Parent = panel,
@@ -387,7 +363,30 @@ function M:Init()
 
 	textDivider:SetPoint("LEFT", panel)
 	textDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
-	textDivider:SetPoint("TOP", fontDropdown, "BOTTOM", 0, -verticalSpacing)
+	textDivider:SetPoint("TOP", growDropdown, "BOTTOM", 0, -verticalSpacing)
+
+	local fontLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	fontLabel:SetText("Font Style")
+	fontLabel:SetJustifyH("LEFT")
+	fontLabel:SetPoint("TOPLEFT", textDivider, "BOTTOMLEFT", 0, -verticalSpacing)
+
+	local fontDropdown = mini:Dropdown({
+		Parent = panel,
+		Items = fontFiles,
+		GetText = function(value)
+			return fontNames[value] or value
+		end,
+		GetValue = function()
+			return db.Font.File
+		end,
+		SetValue = function(value)
+			db.Font.File = value
+			addon:Refresh()
+		end,
+	})
+
+	fontDropdown:SetWidth(220)
+	fontDropdown:SetPoint("TOPLEFT", fontLabel, "BOTTOMLEFT", 0, -4)
 
 	local anchor = mini:TextBlock({
 		Parent = panel,
@@ -398,7 +397,7 @@ function M:Init()
 		},
 	})
 
-	anchor:SetPoint("TOPLEFT", textDivider, "BOTTOMLEFT", 0, -verticalSpacing)
+	anchor:SetPoint("TOPLEFT", fontDropdown, "BOTTOMLEFT", 0, -verticalSpacing)
 
 	local editBoxWidth = 200
 	local fpsEditBox = mini:EditBox({
