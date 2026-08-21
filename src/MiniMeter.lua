@@ -86,6 +86,10 @@ local function GetPlayerDurabilityPercent()
 end
 
 local function ResizeDraggableToText()
+	-- Cleared before the early return below, otherwise a tick whose text changed without
+	-- changing size leaves the queue latched shut and the frame never resizes again.
+	resizeQueued = false
+
 	local width = text:GetUnboundedStringWidth() or 0
 	local height = text:GetStringHeight() or 0
 
@@ -106,8 +110,6 @@ local function ResizeDraggableToText()
 
 	lastWidth = width
 	lastHeight = height
-
-	resizeQueued = false
 end
 
 local function QueueResizeDraggable()
