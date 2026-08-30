@@ -2,20 +2,6 @@ local addonName, addon = ...
 ---@type MiniFramework
 local mini = addon.Framework
 
-StaticPopupDialogs["MINIMETER_CONFIRM_RESET"] = {
-	text = "%s",
-	button1 = YES,
-	button2 = NO,
-	OnAccept = function(_, data)
-		if data and data.OnYes then
-			data.OnYes()
-		end
-	end,
-	timeout = 0,
-	whileDead = true,
-	hideOnEscape = true,
-}
-
 ---@type Db
 local db
 
@@ -175,6 +161,13 @@ function M:Init()
 		Parent = panel,
 		Description = "Shows a simple status meter on your UI.",
 		Gap = 8,
+		Reset = {
+			OnAccept = function()
+				db = mini:ResetSavedVars(dbDefaults)
+				addon:Refresh()
+				mini:NotifyWithPrefix("Settings reset to default.")
+			end,
+		},
 	})
 
 	local togglesDivider = mini:Divider({
@@ -452,26 +445,6 @@ function M:Init()
 	durabilityEditBox.Label:SetJustifyH("LEFT")
 	durabilityEditBox.Label:SetPoint("TOPLEFT", latencyEditBox.Label, "BOTTOMLEFT", 0, -verticalSpacing)
 	durabilityEditBox.EditBox:SetPoint("LEFT", durabilityEditBox.Label, "RIGHT", horizontalSpacing, 0)
-
-	local resetBtn = mini:Button({
-		Parent = panel,
-		Text = "Reset",
-		Width = 120,
-		Height = 26,
-		OnClick = function()
-			StaticPopup_Show("MINIMETER_CONFIRM_RESET", "Are you sure you want to reset to default settings?", nil, {
-				OnYes = function()
-					db = mini:ResetSavedVars(dbDefaults)
-
-					panel:MiniRefresh()
-					addon:Refresh()
-					mini:NotifyWithPrefix("Settings reset to default.")
-				end,
-			})
-		end,
-	})
-
-	resetBtn:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -16, -16)
 
 	mini:RegisterSlashCommand(category, panel, {
 		-- note /mm is used by MiniMarkers

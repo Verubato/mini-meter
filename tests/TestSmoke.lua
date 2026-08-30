@@ -32,6 +32,18 @@ local function GetDivider(text)
 	end
 end
 
+---The reset button and its confirmation are frames the framework owns, so a test reaches
+---them by their label.
+---@param text string
+---@return table?
+local function FindButton(text)
+	for _, frame in ipairs(WowMock.Frames) do
+		if frame.GetText and frame.Click and frame:GetText() == text then
+			return frame
+		end
+	end
+end
+
 smoke.Run("MiniMeter", {
 	extra = function(context)
 		fw.eq(context.Addon.Framework.CustomStyling, true, "custom styling on")
@@ -48,5 +60,12 @@ smoke.Run("MiniMeter", {
 
 		fw.eq(relativePoint, "RIGHT", "the divider ends at the panel's own right edge")
 		fw.eq(x, 0, "flush with the panel's right edge, matching the header rule above it")
+
+		_G.MiniMeterDB.Locked = true
+
+		FindButton("Reset to Defaults"):Click()
+		FindButton("Reset"):Click()
+
+		fw.eq(_G.MiniMeterDB.Locked, false, "the reset button put the default back")
 	end,
 })
