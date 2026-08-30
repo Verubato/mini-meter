@@ -182,6 +182,7 @@ function M:Init()
 	local enableColors = mini:Checkbox({
 		Parent = panel,
 		LabelText = "Enable Colors",
+		Tooltip = "Colors the readings by how good or bad they are.",
 		GetValue = function()
 			return db.Colors.Enabled
 		end,
@@ -196,6 +197,7 @@ function M:Init()
 	local enableFps = mini:Checkbox({
 		Parent = panel,
 		LabelText = "Enable FPS",
+		Tooltip = "Shows your frames per second.",
 		GetValue = function()
 			return db.Fps.Enabled
 		end,
@@ -211,6 +213,7 @@ function M:Init()
 	local enableLatency = mini:Checkbox({
 		Parent = panel,
 		LabelText = "Enable Latency",
+		Tooltip = "Shows your world latency.",
 		GetValue = function()
 			return db.Latency.Enabled
 		end,
@@ -226,6 +229,7 @@ function M:Init()
 	local enableDurability = mini:Checkbox({
 		Parent = panel,
 		LabelText = "Enable Durability",
+		Tooltip = "Shows your gear durability.",
 		GetValue = function()
 			return db.Durability.Enabled
 		end,
@@ -241,6 +245,7 @@ function M:Init()
 	local lockFrame = mini:Checkbox({
 		Parent = panel,
 		LabelText = "Locked",
+		Tooltip = "Prevents the display from being dragged.",
 		GetValue = function()
 			return db.Locked
 		end,
@@ -255,6 +260,7 @@ function M:Init()
 	local enableMicroMenu = mini:Checkbox({
 		Parent = panel,
 		LabelText = "Enable Micro Menu",
+		Tooltip = "Shows a menu of game shortcuts when you hover over the display.",
 		GetValue = function()
 			return db.MicroMenuEnabled
 		end,
@@ -269,6 +275,7 @@ function M:Init()
 	local enableOutline = mini:Checkbox({
 		Parent = panel,
 		LabelText = "Enable Text Outline",
+		Tooltip = "Draws an outline around the text.",
 		GetValue = function()
 			return db.Font.EnableOutline
 		end,
