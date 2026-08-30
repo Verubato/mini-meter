@@ -32,8 +32,7 @@ local function GetDivider(text)
 	end
 end
 
----The reset button and its confirmation are frames the framework owns, so a test reaches
----them by their label.
+---The reset button is a frame the framework owns, so a test reaches it by its label.
 ---@param text string
 ---@return table?
 local function FindButton(text)
@@ -42,6 +41,31 @@ local function FindButton(text)
 			return frame
 		end
 	end
+end
+
+---The client does nothing with a prompt in the mock, so a test stands in for it.
+---@param open fun()
+local function AcceptConfirm(open)
+	local seen
+	local real = StaticPopup_Show
+
+	StaticPopup_Show = function(which, _, _, data)
+		seen = { Which = which, Data = data }
+	end
+
+	local ok, err = pcall(open)
+
+	StaticPopup_Show = real
+
+	if not ok then
+		error(err, 0)
+	end
+
+	if not seen then
+		error("no confirmation was opened")
+	end
+
+	StaticPopupDialogs[seen.Which].OnAccept(nil, seen.Data)
 end
 
 smoke.Run("MiniMeter", {
@@ -63,8 +87,12 @@ smoke.Run("MiniMeter", {
 
 		_G.MiniMeterDB.Locked = true
 
-		FindButton("Reset to Defaults"):Click()
-		FindButton("Reset"):Click()
+		local resetBtn = FindButton("Reset to Defaults")
+		fw.not_nil(resetBtn, "reset button exists")
+
+		AcceptConfirm(function()
+			resetBtn:Click()
+		end)
 
 		fw.eq(_G.MiniMeterDB.Locked, false, "the reset button put the default back")
 	end,
