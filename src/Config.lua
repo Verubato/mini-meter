@@ -330,7 +330,7 @@ function M:Init()
 		RIGHT = "Right",
 	}
 
-	local growLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	local growLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 	growLabel:SetText("Grow Direction")
 	growLabel:SetJustifyH("LEFT")
 	growLabel:SetPoint("BOTTOMLEFT", sizeSlider.Label, "BOTTOMLEFT", columnWidth * 2, 0)
@@ -368,7 +368,7 @@ function M:Init()
 	textDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
 	textDivider:SetPoint("TOP", sizeSlider.Slider, "BOTTOM", 0, -verticalSpacing)
 
-	local fontLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	local fontLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 	fontLabel:SetText("Font Style")
 	fontLabel:SetJustifyH("LEFT")
 	fontLabel:SetPoint("TOPLEFT", textDivider, "BOTTOMLEFT", 0, -verticalSpacing)
