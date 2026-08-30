@@ -138,6 +138,9 @@ local function GetAndUpgradeDb()
 end
 
 function M:Init()
+	-- A styled button clashes with the stock Blizzard art around it in the settings screen.
+	mini:SetCustomStyling(true, { Button = false })
+
 	db = GetAndUpgradeDb()
 
 	-- LibSharedMedia is always bundled, so query it directly for all available fonts.
@@ -450,21 +453,25 @@ function M:Init()
 	durabilityEditBox.Label:SetPoint("TOPLEFT", latencyEditBox.Label, "BOTTOMLEFT", 0, -verticalSpacing)
 	durabilityEditBox.EditBox:SetPoint("LEFT", durabilityEditBox.Label, "RIGHT", horizontalSpacing, 0)
 
-	local resetBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-	resetBtn:SetSize(120, 26)
-	resetBtn:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -16, -16)
-	resetBtn:SetText("Reset")
-	resetBtn:SetScript("OnClick", function()
-		StaticPopup_Show("MINIMETER_CONFIRM_RESET", "Are you sure you want to reset to default settings?", nil, {
-			OnYes = function()
-				db = mini:ResetSavedVars(dbDefaults)
+	local resetBtn = mini:Button({
+		Parent = panel,
+		Text = "Reset",
+		Width = 120,
+		Height = 26,
+		OnClick = function()
+			StaticPopup_Show("MINIMETER_CONFIRM_RESET", "Are you sure you want to reset to default settings?", nil, {
+				OnYes = function()
+					db = mini:ResetSavedVars(dbDefaults)
 
-				panel:MiniRefresh()
-				addon:Refresh()
-				mini:NotifyWithPrefix("Settings reset to default.")
-			end,
-		})
-	end)
+					panel:MiniRefresh()
+					addon:Refresh()
+					mini:NotifyWithPrefix("Settings reset to default.")
+				end,
+			})
+		end,
+	})
+
+	resetBtn:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -16, -16)
 
 	mini:RegisterSlashCommand(category, panel, {
 		-- note /mm is used by MiniMarkers
