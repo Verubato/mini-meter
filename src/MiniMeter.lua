@@ -1,4 +1,4 @@
-local _, addon = ...
+local addonName, addon = ...
 local eventsFrame
 ---@type MiniFramework
 local mini = addon.Framework
@@ -464,7 +464,7 @@ local function Init()
 	eventsFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 	eventsFrame:SetScript("OnEvent", OnEvent)
 
-	draggable = CreateFrame("Frame", nil, UIParent)
+	draggable = CreateFrame("Frame", addonName .. "Frame", UIParent)
 	draggable:Show()
 
 	mini:MakeMovable(draggable, db, { IsLocked = IsLocked, OnMoved = ApplyGrowAnchor })
@@ -495,6 +495,9 @@ local function OnAddonLoaded()
 end
 
 function addon:Refresh()
+	-- The reset restores the default anchor, and nothing else re-applies it until the next event.
+	mini:ApplyPosition(draggable, db, config.DbDefaults)
+	AnchorText()
 	UpdateFont()
 	UpdateText()
 	ApplyLockState()

@@ -95,5 +95,31 @@ smoke.Run("MiniMeter", {
 		end)
 
 		fw.eq(_G.MiniMeterDB.Locked, false, "the reset button put the default back")
+
+		local displayFrame = _G["MiniMeterFrame"]
+		local db = _G.MiniMeterDB
+		local defaults = context.Addon.Config.DbDefaults
+
+		fw.not_nil(displayFrame, "the display frame exists")
+
+		displayFrame:ClearAllPoints()
+		displayFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 350, -75)
+		db.Point = "TOPLEFT"
+		db.RelativePoint = "TOPLEFT"
+		db.RelativeTo = "UIParent"
+		db.X = 350
+		db.Y = -75
+
+		AcceptConfirm(function()
+			resetBtn:Click()
+		end)
+
+		local resetPoint, resetRelativeTo, resetRelativePoint, resetX, resetY = displayFrame:GetPoint(1)
+
+		fw.eq(resetX, defaults.X, "reset put the display back at its default x")
+		fw.eq(resetY, defaults.Y, "reset put the display back at its default y")
+		fw.eq(resetPoint, defaults.Point, "reset put the display back on its default anchor point")
+		fw.eq(resetRelativePoint, defaults.RelativePoint, "reset put the display back on its default relative point")
+		fw.eq(resetRelativeTo:GetName(), defaults.RelativeTo, "reset anchored the display to its default frame again")
 	end,
 })
