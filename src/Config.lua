@@ -79,12 +79,181 @@ local dbDefaults = {
 	},
 }
 
+-- Preview rows sit in a menu, so they take the menu's own text size.
+local PREVIEW_FONT_SIZE = 13
+-- Only the client's own locale takes the configured file, so text in another script still
+-- renders from the game's files.
+local FAMILY_ALPHABETS = { "roman", "korean", "simplifiedchinese", "traditionalchinese", "russian" }
+local LOCALE_ALPHABETS = {
+	koKR = "korean",
+	zhCN = "simplifiedchinese",
+	zhTW = "traditionalchinese",
+	ruRU = "russian",
+}
+-- SetFont answers false for a file the client is still loading and leaves the object undefined
+-- for good, so these are built once through CreateFontFamily and never edited after.
+local previewFontObjects = {}
+local previewFontObjectCount = 0
+
+-- The dropdown holds these tables, so they are refilled in place rather than replaced.
+local fontFiles = {}
+local fontNames = {}
+local fontDropdown
+local fontsMediaSubscribed = false
+local fontsRefreshQueued = false
+
 ---@class ConfigModule
 local M = {
 	DbDefaults = dbDefaults,
 }
 
 addon.Config = M
+
+---The family members for a file at a size: the file itself for the client's own locale, the
+---game's per-alphabet files for the rest.
+---@param file string
+---@param size number
+---@param flags string
+---@return table[] members
+local function FamilyMembers(file, size, flags)
+	local override = LOCALE_ALPHABETS[GetLocale()] or "roman"
+	local members = {}
+
+	for _, alphabet in ipairs(FAMILY_ALPHABETS) do
+		local memberFile = file
+
+		if alphabet ~= override and GameFontNormal and GameFontNormal.GetFontObjectForAlphabet then
+			local gameObject = GameFontNormal:GetFontObjectForAlphabet(alphabet)
+
+			memberFile = (gameObject and gameObject:GetFont()) or file
+		end
+
+		members[#members + 1] = {
+			alphabet = alphabet,
+			file = memberFile,
+			height = size,
+			flags = flags,
+		}
+	end
+
+	return members
+end
+
+---A font object wearing this file's own face, for a dropdown row that previews the font it names.
+---@param file string?
+---@return table? object nil when there is no file to preview
+local function PreviewFontObject(file)
+	if not file or file == "" then
+		return nil
+	end
+
+	local object = previewFontObjects[file]
+
+	if object then
+		return object
+	end
+
+	previewFontObjectCount = previewFontObjectCount + 1
+
+	local name = addonName .. "FontPreview" .. previewFontObjectCount
+
+	if CreateFontFamily then
+		object = CreateFontFamily(name, FamilyMembers(file, PREVIEW_FONT_SIZE, ""))
+	else
+		-- Only an old client gets here, where the two-step is all there is.
+		object = CreateFont(name)
+		object:SetFont(file, PREVIEW_FONT_SIZE, "")
+	end
+
+	previewFontObjects[file] = object
+
+	return object
+end
+
+---Each row previews the font it names. Menu rows are pooled, so the stock face is remembered
+---the first time a row comes through here and put back on a row that previews nothing.
+---@param button table
+---@param value string?
+local function DecorateFontRow(button, value)
+	local text = button.fontString
+
+	if not text then
+		return
+	end
+
+	if button.MiniMeterStockFont == nil then
+		button.MiniMeterStockFont = text:GetFontObject() or false
+	end
+
+	local preview = PreviewFontObject(value)
+
+	if preview then
+		text:SetFontObject(preview)
+	elseif button.MiniMeterStockFont then
+		text:SetFontObject(button.MiniMeterStockFont)
+	end
+end
+
+---Refills the font list in place from LibSharedMedia. LibSharedMedia is always bundled, so
+---this always has the WoW built-ins plus everything in our bundled fonts folder, and picks up
+---anything a third-party media pack registers later too.
+local function RefillFontLists()
+	wipe(fontFiles)
+	wipe(fontNames)
+
+	local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+	-- Fetch answers one override file for every name once an addon sets a global font.
+	local hash = LSM and LSM:HashTable("font")
+
+	if hash then
+		for _, name in ipairs(LSM:List("font") or {}) do
+			local file = hash[name]
+
+			if file and not fontNames[file] then
+				fontFiles[#fontFiles + 1] = file
+				fontNames[file] = name
+			end
+		end
+	end
+end
+
+---Runs the list refresh once at the end of the frame however many times it is asked for in one,
+---since LibSharedMedia fires once per registered entry and a media pack registers its whole set
+---inside a single frame.
+local function QueueFontListsChanged()
+	if fontsRefreshQueued then
+		return
+	end
+
+	fontsRefreshQueued = true
+
+	C_Timer.After(0, function()
+		fontsRefreshQueued = false
+		RefillFontLists()
+
+		if fontDropdown then
+			fontDropdown:MiniRefresh()
+		end
+	end)
+end
+
+---Fonts keep arriving for as long as media addons keep loading, which is routinely after this
+---panel was built.
+local function EnsureFontMediaSubscription()
+	if fontsMediaSubscribed then
+		return
+	end
+
+	local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+
+	if not LSM or not LSM.RegisterCallback then
+		return
+	end
+
+	fontsMediaSubscribed = true
+
+	LSM.RegisterCallback(M, "LibSharedMedia_Registered", QueueFontListsChanged)
+end
 
 local function GetAndUpgradeDb()
 	local vars = mini:GetSavedVars(dbDefaults)
@@ -129,20 +298,7 @@ function M:Init()
 
 	db = GetAndUpgradeDb()
 
-	-- LibSharedMedia is always bundled, so query it directly for all available fonts.
-	-- This includes the WoW built-ins plus everything in our bundled fonts folder.
-	local LSM = LibStub("LibSharedMedia-3.0")
-
-	local fontFiles = {}
-	local fontNames = {}
-
-	for _, name in ipairs(LSM:List("font")) do
-		local file = LSM:Fetch("font", name)
-		if file then
-			fontFiles[#fontFiles + 1] = file
-			fontNames[file] = name
-		end
-	end
+	RefillFontLists()
 
 	local verticalSpacing = mini.VerticalSpacing
 	local horizontalSpacing = mini.HorizontalSpacing
@@ -373,7 +529,7 @@ function M:Init()
 	fontLabel:SetJustifyH("LEFT")
 	fontLabel:SetPoint("TOPLEFT", textDivider, "BOTTOMLEFT", 0, -verticalSpacing)
 
-	local fontDropdown = mini:Dropdown({
+	fontDropdown = mini:Dropdown({
 		Parent = panel,
 		Items = fontFiles,
 		GetText = function(value)
@@ -386,10 +542,13 @@ function M:Init()
 			db.Font.File = value
 			addon:Refresh()
 		end,
+		DecorateItem = DecorateFontRow,
 	})
 
 	fontDropdown:SetWidth(220)
 	fontDropdown:SetPoint("TOPLEFT", fontLabel, "BOTTOMLEFT", 0, -4)
+
+	EnsureFontMediaSubscription()
 
 	local anchor = mini:TextBlock({
 		Parent = panel,
