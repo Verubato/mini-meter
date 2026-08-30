@@ -183,7 +183,7 @@ function M:Init()
 	})
 
 	togglesDivider:SetPoint("LEFT", panel)
-	togglesDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
+	togglesDivider:SetPoint("RIGHT", panel, "RIGHT", 0, 0)
 	togglesDivider:SetPoint("TOP", header.Anchor, "BOTTOM", 0, -verticalSpacing)
 
 	local enableColors = mini:Checkbox({
@@ -299,7 +299,7 @@ function M:Init()
 	})
 
 	sizeDivider:SetPoint("LEFT", panel)
-	sizeDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
+	sizeDivider:SetPoint("RIGHT", panel, "RIGHT", 0, 0)
 	sizeDivider:SetPoint("TOP", lockFrame, "BOTTOM", 0, -verticalSpacing)
 
 	local sizeSlider = mini:Slider({
@@ -365,7 +365,7 @@ function M:Init()
 	})
 
 	textDivider:SetPoint("LEFT", panel)
-	textDivider:SetPoint("RIGHT", panel, -horizontalSpacing, 0)
+	textDivider:SetPoint("RIGHT", panel, "RIGHT", 0, 0)
 	textDivider:SetPoint("TOP", sizeSlider.Slider, "BOTTOM", 0, -verticalSpacing)
 
 	local fontLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")

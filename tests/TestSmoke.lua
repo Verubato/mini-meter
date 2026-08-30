@@ -20,6 +20,18 @@ local function GetPanelCaption(text)
 	end
 end
 
+---A hand-anchored divider is a plain frame with a labelled child, so a test finds it the
+---way a player sees it, by that label.
+---@param text string
+---@return table?
+local function GetDivider(text)
+	for _, frame in ipairs(WowMock.Frames) do
+		if frame.Label and frame.Label.GetText and frame.Label:GetText() == text then
+			return frame
+		end
+	end
+end
+
 smoke.Run("MiniMeter", {
 	extra = function(context)
 		fw.eq(context.Addon.Framework.CustomStyling, true, "custom styling on")
@@ -30,5 +42,11 @@ smoke.Run("MiniMeter", {
 
 		fw.eq(growCaption and growCaption.__template, "GameFontHighlight", "grow direction caption is white, not Blizzard gold")
 		fw.eq(fontCaption and fontCaption.__template, "GameFontHighlight", "font style caption is white, not Blizzard gold")
+
+		local togglesDivider = GetDivider("TOGGLES")
+		local _, _, relativePoint, x = togglesDivider:GetPoint(2)
+
+		fw.eq(relativePoint, "RIGHT", "the divider ends at the panel's own right edge")
+		fw.eq(x, 0, "flush with the panel's right edge, matching the header rule above it")
 	end,
 })
