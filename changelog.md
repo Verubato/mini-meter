@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.1
+
+- UI improvements.
+- Fixed reset not moving the display back.
+- Added font previews to the font dropdown.
+
 ## 3.3.0
 
 - Added a Grow Direction setting, so the display expands from the edge you lined it up against instead of spreading either side of its centre.

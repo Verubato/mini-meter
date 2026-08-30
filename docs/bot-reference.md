@@ -64,6 +64,8 @@ All settings are in the options panel, grouped under dividers. Changes to checkb
 
 ### Toggles
 
+Each checkbox has a hover tooltip describing what it does.
+
 | Setting | Default | Effect |
 |---|---|---|
 | Enable Colors | On | Color values by thresholds; off = plain white text |
@@ -87,7 +89,7 @@ All settings are in the options panel, grouped under dividers. Changes to checkb
 |---|---|
 | Font Style (dropdown) | Friz Quadrata (Fonts\FRIZQT__.TTF), any font registered with LibSharedMedia |
 
-MiniMeter bundles about 45 fonts and registers them with LibSharedMedia, so they also appear in other addons that use shared media. Fonts registered by your other addons appear in MiniMeter's dropdown too.
+MiniMeter bundles about 45 fonts and registers them with LibSharedMedia, so they also appear in other addons that use shared media. Fonts registered by your other addons appear in MiniMeter's dropdown too. Each row in the dropdown previews the font it names, so you see how a font looks before picking it.
 
 Each part has an editable format string. The placeholder $value is replaced with the number. Example: "FPS: $value" becomes "FPS: 123".
 
@@ -99,7 +101,7 @@ Each part has an editable format string. The placeholder $value is replaced with
 
 ### Reset
 
-The "Reset" button (top right of the options panel) restores all settings to defaults after a Yes/No confirmation popup, then prints "MiniMeter - Settings reset to default." in chat. This also resets the position.
+The "Reset to Defaults" button (top right of the options panel) asks "Reset every setting back to its default? This cannot be undone." with Reset/Cancel buttons. Accepting restores all settings to defaults, moves the display back to its default position, and prints "MiniMeter - Settings reset to default." in chat.
 
 ## Version-gated behavior
 
@@ -108,7 +110,7 @@ The "Reset" button (top right of the options panel) restores all settings to def
 
 ## Troubleshooting
 
-- "The text is gone / I can't find it": check that at least one of Enable FPS / Enable Latency / Enable Durability is on. The default spot is just below the minimap. If a minimap addon removed the frame it was anchored to, the text re-anchors to the screen and can end up at the screen edge. The Reset button restores the default position.
+- "The text is gone / I can't find it": check that at least one of Enable FPS / Enable Latency / Enable Durability is on. The default spot is just below the minimap. If a minimap addon removed the frame it was anchored to, the text re-anchors to the screen and can end up at the screen edge. The Reset to Defaults button restores the default position.
 - "I can't drag it": untick "Locked" in the options. Drag with the left mouse button.
 - "It shifts a little when I log in on another character": the text is sized to its content, and a different character's durability or latency reads a different length. Set Grow Direction to Right if you lined the display up against the left of your screen, or Left if you lined it up against the right, and that edge stays put.
 - "Everything is white / no colors": turn on "Enable Colors".
