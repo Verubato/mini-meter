@@ -10,7 +10,7 @@ MiniMeter shows a small draggable text display on your UI with your FPS, world l
 |---|---|
 | Addon version | 3.3.0 |
 | Author | Verz |
-| Interface versions (TOC) | 120100, 50504, 40402, 38002, 38000, 30405, 30300, 20506, 11509 (Retail and Classic clients) |
+| Interface versions (TOC) | 120100, 16001, 50504, 40402, 38002, 38000, 30405, 30300, 20506, 11509 (Retail and Classic clients) |
 | Saved variables | MiniMeterDB (account-wide) |
 | Slash commands | /minimeter, /mmeter (both open the options panel) |
 | Options location | Game Menu -> Options -> AddOns -> MiniMeter |
