@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.2
+
+Added WoW Forever support.
+
 ## 3.3.1
 
 - UI improvements.
